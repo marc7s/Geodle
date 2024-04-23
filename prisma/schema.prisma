@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+  seed     = "prisma/seed.ts"
+}
+
+datasource db {
+  provider          = "sqlserver"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Country {
+  id        Int    @id @default(autoincrement())
+  shortName String @unique
+  longName  String @unique
+
+  population     Int
+  populationYear Int
+
+  Flag Flag?
+  City City?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Flag {
+  id Int @id @default(autoincrement())
+
+  countryId Int     @unique
+  country   Country @relation(fields: [countryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model City {
+  id        Int     @id @default(autoincrement())
+  name      String
+  isCapital Boolean
+
+  population     Int
+  populationYear Int
+
+  lat  Float
+  long Float
+
+  countryId Int     @unique
+  country   Country @relation(fields: [countryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, lat, long], name: "cityLocation")
+}
