@@ -7,7 +7,7 @@ async function getCity(slug: string): Promise<City | undefined> {
 
   const city = await prisma.city.findFirst({
     where: {
-      OR: [{ id: cityID }, { name: cityName }],
+      OR: [{ id: cityID }, { englishName: cityName }],
     },
   });
 
@@ -16,5 +16,5 @@ async function getCity(slug: string): Promise<City | undefined> {
 
 export default async function CityPage({ params }: any) {
   const city: City | undefined = await getCity(params.id);
-  return <>{city?.name}</>;
+  return <>{city?.englishName}</>;
 }

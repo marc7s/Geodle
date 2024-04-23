@@ -1,19 +1,21 @@
 import { PrismaClient } from '@prisma/client';
+import { SeedCountries, SeedCountry } from './seeds/countries';
+import { SeedCities, SeedCity } from './seeds/cities';
+import { prismaEncodeStringList } from '@/utils';
 
 const prisma = new PrismaClient();
 
-async function createCountry(
-  shortName: string,
-  longName: string,
-  population: number,
-  populationYear: number
-) {
+async function createCountry(seedCountry: SeedCountry) {
   return await prisma.country.create({
     data: {
-      shortName: shortName,
-      longName: longName,
-      population: population,
-      populationYear: populationYear,
+      englishShortName: seedCountry.englishShortName,
+      englishLongName: seedCountry.englishLongName,
+      domesticName: seedCountry.domesticName,
+      aliases: prismaEncodeStringList(seedCountry.aliases),
+      populationCount: seedCountry.population.count,
+      populationYear: seedCountry.population.year,
+      lat: seedCountry.coordinates.lat,
+      long: seedCountry.coordinates.long,
     },
   });
 }
@@ -26,58 +28,38 @@ async function createFlag(countryId: number) {
   });
 }
 
-async function createCity(
-  name: string,
-  isCapital: boolean,
-  countryId: number,
-  population: number,
-  populationYear: number,
-  lat: number,
-  long: number
-) {
+async function createCity(seedCity: SeedCity, isCapital: boolean) {
   return await prisma.city.create({
     data: {
-      name: name,
+      englishName: seedCity.englishName,
+      domesticName: seedCity.domesticName,
+      aliases: prismaEncodeStringList(seedCity.aliases),
       isCapital: isCapital,
-      countryId: countryId,
-      population: population,
-      populationYear: populationYear,
-      lat: lat,
-      long: long,
+      populationCount: seedCity.population.count,
+      populationYear: seedCity.population.year,
+      countryId: (
+        await prisma.country.findUniqueOrThrow({
+          where: {
+            englishShortName: seedCity.countryEnglishName,
+          },
+        })
+      ).id,
+      lat: seedCity.coordinates.lat,
+      long: seedCity.coordinates.long,
     },
   });
 }
 
 async function main() {
-  console.log('Adding countries...');
-  const sweden = await createCountry('Sweden', 'Sweden', 10_661_715, 2024);
-  const norway = await createCountry('Norway', 'Norway', 5_488_984, 2023);
-  console.log(sweden);
+  SeedCountries.forEach(async (sc) => {
+    const country = await createCountry(sc);
+    await createFlag(country.id);
+    await createCity(sc.capital, true);
+  });
 
-  console.log('Adding flags...');
-  const swedenFlag = await createFlag(sweden.id);
-  const norwayFlag = await createFlag(norway.id);
-  console.log(swedenFlag);
-
-  console.log('Adding cities...');
-  const stockholm = await createCity(
-    'Stockholm',
-    true,
-    sweden.id,
-    975_551,
-    2020,
-    59.334591,
-    18.06324
-  );
-  const oslo = await createCity(
-    'Oslo',
-    true,
-    norway.id,
-    709_037,
-    2022,
-    59.911491,
-    10.757933
-  );
+  SeedCities.forEach(async (sc) => {
+    await createCity(sc, false);
+  });
 }
 
 main()

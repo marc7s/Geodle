@@ -12,13 +12,13 @@ export default function CountryInfo(props: Props) {
     <>
       <div>
         <Image
-          src={`/flags/${props.country.shortName}.png`}
+          src={`/flags/${props.country.englishShortName}.png`}
           width={100}
           height={100}
           alt='Flag'
         ></Image>
-        <h1>{props.country.shortName}</h1>
-        <h2>Population: {props.country.population}</h2>
+        <h1>{props.country.englishShortName}</h1>
+        <h2>Population: {props.country.englishShortName}</h2>
       </div>
     </>
   );

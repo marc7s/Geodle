@@ -1,5 +1,5 @@
 import prisma from '@/app/db';
-import { arrayPartition, arrayShuffle } from '@/utils';
+import { arrayPartition, arrayShuffle, prismaDecodeStringList } from '@/utils';
 import { City, Country } from '@prisma/client';
 
 import styles from './styles.module.scss';
@@ -11,22 +11,38 @@ interface CombinedCountry {
   capital: City;
 }
 
+function getSetValues(...arr: (string | null)[]) {
+  const result: string[] = [];
+  arr.forEach((v) => {
+    if (v) result.push(v);
+  });
+
+  return result;
+}
+
 function combinedToQuestions(combined: CombinedCountry): Question[] {
   return [
     {
       knownMatches: ['name', 'shortName', 'longName'],
       question: 'Name',
-      answers: [combined.country.shortName, combined.country.longName],
+      answers: getSetValues(
+        combined.country.englishShortName,
+        combined.country.englishLongName,
+        ...prismaDecodeStringList(combined.country.aliases)
+      ),
     },
     {
       knownMatches: ['flag'],
       question: 'Flag',
-      answers: [combined.country.shortName],
+      answers: [combined.country.englishShortName],
     },
     {
       knownMatches: ['capital'],
       question: 'Capital',
-      answers: [combined.capital.name],
+      answers: [
+        combined.capital.englishName,
+        ...prismaDecodeStringList(combined.capital.aliases),
+      ],
     },
   ];
 }
@@ -41,7 +57,7 @@ async function getCombinedCountries(): Promise<CombinedCountry[]> {
     const capital: City | undefined = capitals.find(
       (cap) => cap.countryId === c.id
     );
-    if (!capital) throw Error(`Capital not found for ${c.shortName}`);
+    if (!capital) throw Error(`Capital not found for ${c.englishShortName}`);
 
     return {
       country: c,

@@ -10,8 +10,8 @@ async function getCountry(slug: string): Promise<Country | undefined> {
     where: {
       OR: [
         { id: countryID },
-        { shortName: countryName },
-        { longName: countryName },
+        { englishShortName: countryName },
+        { englishLongName: countryName },
       ],
     },
   });

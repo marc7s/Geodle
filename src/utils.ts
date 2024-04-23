@@ -1,3 +1,11 @@
+export function prismaEncodeStringList(str: string[]): string {
+  return str.join(';');
+}
+
+export function prismaDecodeStringList(str: string): string[] {
+  return str.split(';');
+}
+
 export function arrayShuffle(arr: any[]) {
   let currentIndex = arr.length;
   let randomIndex = 0;

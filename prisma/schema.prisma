@@ -10,15 +10,20 @@ datasource db {
 }
 
 model Country {
-  id        Int    @id @default(autoincrement())
-  shortName String @unique
-  longName  String @unique
+  id               Int     @id @default(autoincrement())
+  englishShortName String  @unique
+  englishLongName  String?
+  domesticName     String  @unique
+  aliases          String
 
-  population     Int
-  populationYear Int
+  populationCount Int
+  populationYear  Int
 
-  Flag Flag?
-  City City?
+  lat  Float
+  long Float
+
+  Flag   Flag?
+  Cities City[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -35,21 +40,23 @@ model Flag {
 }
 
 model City {
-  id        Int     @id @default(autoincrement())
-  name      String
-  isCapital Boolean
+  id           Int     @id @default(autoincrement())
+  englishName  String
+  domesticName String?
+  aliases      String
+  isCapital    Boolean
 
-  population     Int
-  populationYear Int
+  populationCount Int
+  populationYear  Int
 
   lat  Float
   long Float
 
-  countryId Int     @unique
+  countryId Int
   country   Country @relation(fields: [countryId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([name, lat, long], name: "cityLocation")
+  @@unique([englishName, lat, long], name: "cityLocation")
 }
