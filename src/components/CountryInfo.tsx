@@ -1,3 +1,4 @@
+import { getFlagURL } from '@/utils';
 import { Country } from '@prisma/client';
 import Image from 'next/image';
 
@@ -12,13 +13,16 @@ export default function CountryInfo(props: Props) {
     <>
       <div>
         <Image
-          src={`/flags/${props.country.englishShortName}.png`}
+          src={getFlagURL(props.country)}
           width={100}
           height={100}
           alt='Flag'
         ></Image>
         <h1>{props.country.englishShortName}</h1>
-        <h2>Population: {props.country.englishShortName}</h2>
+        <h2>Domestic name: {props.country.domesticName}</h2>
+        <h2>
+          Coordinates: {props.country.lat} {props.country.long}
+        </h2>
       </div>
     </>
   );

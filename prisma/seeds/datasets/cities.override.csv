@@ -1,0 +1,17 @@
+PROCESSING_DESCRIPTION;Geoname ID;Name;ASCII Name;Alternate Names;Feature Class;Feature Code;Country Code;Country name EN;Country Code 2;Admin1 Code;Admin2 Code;Admin3 Code;Admin4 Code;Population;Elevation;DIgital Elevation Model;Timezone;Modification date;LABEL EN;Coordinates
+Set Jerusalem as capital of Israel;281184;;;;;PPLC;;;;;;;;;;;;;;
+Set Ramallah as capital of Palestine;282239;;;;;PPLC;;;;;;;;;;;;;;
+Change default name for capital of Western Sahara and set it as capital;2462881;El Aaiún;;;;PPLC;;;;;;;;;;;;;;
+Change default name for capital of Micronesia;2081986;Palikir;;;;;;;;;;;;;;;;;;
+Change default name for capital of Guernsey;3042287;St Peter Port;;;;;;;;;;;;;;;;;;
+Change default name for capital of Grenada;3579925;St George's;;;;;;;;;;;;;;;;;;
+Unset Hong Kong as capital of Hong Kong;1819729;;;;;PPL;;;;;;;;;;;;;;
+Set City of Victoria as capital of Hong Kong;1931681;City of Victoria;;;;PPLC;;;;;;;;;;;;;;
+Change default name for capital of Moldova;618426;Chișinău;;;;;;;;;;;;;;;;;;
+Change default name for capital of Maldives;1282027;Malé;;;;;;;;;;;;;;;;;;
+Change default name for capital of Myanmar;6611854;Naypyidaw;;;;;;;;;;;;;;;;;;
+Change default name for capital of Panama;3703443;Panama City;;;;;;;;;;;;;;;;;;
+Change default name for capital of French Polynesia;4033936;Papeetē;;;;;;;;;;;;;;;;;;
+Unset Grytviken as capital of South Georgia;3426466;;;;;PPL;;;;;;;;;;;;;;
+Change default name for capital of San Marino;3168070;City of San Marino;;;;;;;;;;;;;;;;;;
+Change default name for capital of United States;4140963;Washington, D.C.;;;;;;;;;;;;;;;;;;

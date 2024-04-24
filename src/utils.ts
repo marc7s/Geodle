@@ -1,5 +1,12 @@
+import { Country } from '@prisma/client';
+
+export function getFlagURL(country: Country): string {
+  return `https://raw.githubusercontent.com/marc7s/countries/master/data/${country.iso3Code.toLocaleLowerCase()}.svg`;
+}
+
 export function prismaEncodeStringList(str: string[]): string {
-  return str.join(';');
+  // There is a limit to the string length, so we only encode the first N elements, so that the total size is below a threshold
+  return str.reduce((acc, curr) => (acc.length > 1000 ? acc : acc + curr), '');
 }
 
 export function prismaDecodeStringList(str: string): string[] {

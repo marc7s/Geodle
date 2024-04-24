@@ -1,67 +1,155 @@
+import {
+  CSVData,
+  getOverrideData,
+  parseCSV,
+  validateCSVHeaders,
+  validateCoordinates,
+} from '../parser';
 import { SeedCity } from './cities';
-import { SeedCoordinate, SeedPopulation } from './interfaces';
+import { SeedCoordinate } from './interfaces';
+
+enum CountryCSVHeaders {
+  'name.common' = 0,
+  'name.official',
+  'cca2',
+  'cca3',
+  'independent',
+  'capital',
+  'region',
+  'latlng',
+  'borders',
+  'area',
+}
+
+interface IgnoredCountry {
+  ISO2Code: string;
+  reason: string;
+}
+
+export const ignoredCountries: IgnoredCountry[] = [
+  {
+    ISO2Code: 'AQ',
+    reason: 'Antarctica, not a country',
+  },
+  {
+    ISO2Code: 'BV',
+    reason: 'Island outside Antarctica, dependency of Norway',
+  },
+  {
+    ISO2Code: 'HM',
+    reason: 'Australian external territory, uninhabited',
+  },
+  {
+    ISO2Code: 'UM',
+    reason: 'US Outlying islands, nine island territories, not a country',
+  },
+];
 
 export interface SeedCountry {
+  ISO2Code: string;
+  ISO3Code: string;
   englishShortName: string;
   englishLongName?: string;
   domesticName: string;
   aliases: string[];
-  population: SeedPopulation;
   coordinates: SeedCoordinate;
   capital: SeedCity;
 }
 
-export const SeedCountries: SeedCountry[] = [
-  {
-    englishShortName: 'Sweden',
-    domesticName: 'Sverige',
-    aliases: [],
-    population: {
-      count: 10_661_715,
-      year: 2024,
-    },
-    coordinates: {
-      lat: 60.128161,
-      long: 18.643501,
-    },
-    capital: {
-      englishName: 'Stockholm',
-      aliases: [],
-      countryEnglishName: 'Sweden',
-      population: {
-        count: 975_551,
-        year: 2020,
-      },
-      coordinates: {
-        lat: 59.334591,
-        long: 18.06324,
-      },
-    },
-  },
-  {
-    englishShortName: 'Norway',
-    domesticName: 'Norge',
-    aliases: [],
-    population: {
-      count: 5_488_984,
-      year: 2023,
-    },
-    coordinates: {
-      lat: 64.583013,
-      long: 17.86411,
-    },
-    capital: {
-      englishName: 'Oslo',
-      aliases: [],
-      countryEnglishName: 'Norway',
-      population: {
-        count: 709_037,
-        year: 2022,
-      },
-      coordinates: {
-        lat: 59.911491,
-        long: 10.757933,
-      },
-    },
-  },
-];
+function onlyASCIIChars(str: string): string {
+  return str.replace(/[^A-Za-z]/g, '');
+}
+
+export async function GetSeedCountries(
+  seedCities: SeedCity[]
+): Promise<SeedCountry[]> {
+  return new Promise(async (resolve, reject) => {
+    // Main dataset
+    const csv: CSVData = await parseCSV(
+      'https://raw.githubusercontent.com/marc7s/countries/master/geodl/countries.csv',
+      ',',
+      true
+    );
+
+    if (!validateCSVHeaders(csv.headers, CountryCSVHeaders))
+      reject('Country CSV did not follow the expected format');
+
+    // Override dataset
+    const csvOverride: CSVData = await parseCSV(
+      'prisma/seeds/datasets/countries.override.csv',
+      ','
+    );
+
+    if (!validateCSVHeaders(csvOverride.headers, CountryCSVHeaders))
+      reject('Country Override CSV did not follow the expected format');
+
+    const overrideDataProcesser = getOverrideData(
+      'Country override CSV',
+      csvOverride,
+      CountryCSVHeaders['cca2']
+    );
+
+    if (overrideDataProcesser instanceof Error)
+      return reject(overrideDataProcesser.message);
+
+    const seedCountries: SeedCountry[] = [];
+
+    csv.data.forEach((row) => {
+      row = overrideDataProcesser(row);
+
+      const countryISO2: string = row[CountryCSVHeaders['cca2']];
+      const countryCapitalName: string = row[CountryCSVHeaders['capital']]
+        .split(',')[0]
+        .trim();
+      const englishShortName: string = row[CountryCSVHeaders['name.common']];
+      const logCountryName: string = `country ${englishShortName} (${countryISO2})`;
+
+      // Skip ignored countries
+      if (ignoredCountries.find((ic) => ic.ISO2Code === countryISO2)) return;
+
+      // Validate coordinates
+      const [validCoordinates, lat, long] = validateCoordinates(
+        row[CountryCSVHeaders['latlng']]
+      );
+      if (!validCoordinates)
+        reject(
+          `Invalid lat or long for city ${englishShortName}: ${lat} ${long}`
+        );
+
+      // Validate capital
+      const capital: SeedCity | undefined = seedCities.find(
+        (c) => c.countryISO2Code === countryISO2 && c.isCapital
+      );
+      if (capital === undefined)
+        return reject(
+          `Capital not found for ${logCountryName}. Looking for ${countryCapitalName}`
+        );
+      const countryASCIICapital: string = onlyASCIIChars(countryCapitalName);
+      const cityASCIICapital: string = onlyASCIIChars(
+        capital.domesticName ?? capital.englishName
+      );
+      if (countryASCIICapital !== cityASCIICapital)
+        return reject(
+          `Capital name does not match for ${logCountryName}.\nCountry capital: ${countryASCIICapital}\nCity capital: ${cityASCIICapital}`
+        );
+
+      const seedCountry: SeedCountry = {
+        ISO2Code: countryISO2,
+        ISO3Code: row[CountryCSVHeaders['cca3']],
+        englishShortName: englishShortName,
+        englishLongName: row[CountryCSVHeaders['name.official']],
+        domesticName: row[CountryCSVHeaders['name.official']],
+        aliases: [],
+        coordinates: {
+          lat: lat,
+          long: long,
+        },
+        capital: capital,
+      };
+
+      seedCountries.push(seedCountry);
+    });
+
+    resolve(seedCountries);
+  });
+}
