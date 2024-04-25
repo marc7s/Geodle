@@ -3,6 +3,16 @@ BEGIN TRY
 BEGIN TRAN;
 
 -- CreateTable
+CREATE TABLE [dbo].[Region] (
+    [id] INT NOT NULL IDENTITY(1,1),
+    [name] NVARCHAR(1000) NOT NULL,
+    [createdAt] DATETIME2 NOT NULL CONSTRAINT [Region_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
+    [updatedAt] DATETIME2 NOT NULL,
+    CONSTRAINT [Region_pkey] PRIMARY KEY CLUSTERED ([id]),
+    CONSTRAINT [Region_name_key] UNIQUE NONCLUSTERED ([name])
+);
+
+-- CreateTable
 CREATE TABLE [dbo].[Country] (
     [id] INT NOT NULL IDENTITY(1,1),
     [iso2Code] VARCHAR(2) NOT NULL,
@@ -13,6 +23,7 @@ CREATE TABLE [dbo].[Country] (
     [aliases] NVARCHAR(max) NOT NULL,
     [lat] FLOAT(53) NOT NULL,
     [long] FLOAT(53) NOT NULL,
+    [regionId] INT NOT NULL,
     [createdAt] DATETIME2 NOT NULL CONSTRAINT [Country_createdAt_df] DEFAULT CURRENT_TIMESTAMP,
     [updatedAt] DATETIME2 NOT NULL,
     CONSTRAINT [Country_pkey] PRIMARY KEY CLUSTERED ([id]),
@@ -37,6 +48,9 @@ CREATE TABLE [dbo].[City] (
     CONSTRAINT [City_pkey] PRIMARY KEY CLUSTERED ([id]),
     CONSTRAINT [City_englishName_lat_long_key] UNIQUE NONCLUSTERED ([englishName],[lat],[long])
 );
+
+-- AddForeignKey
+ALTER TABLE [dbo].[Country] ADD CONSTRAINT [Country_regionId_fkey] FOREIGN KEY ([regionId]) REFERENCES [dbo].[Region]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE [dbo].[City] ADD CONSTRAINT [City_countryId_fkey] FOREIGN KEY ([countryId]) REFERENCES [dbo].[Country]([id]) ON DELETE NO ACTION ON UPDATE CASCADE;

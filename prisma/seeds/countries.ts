@@ -48,6 +48,7 @@ export const ignoredCountries: IgnoredCountry[] = [
 export interface SeedCountry {
   ISO2Code: string;
   ISO3Code: string;
+  region: string;
   englishShortName: string;
   englishLongName?: string;
   domesticName: string;
@@ -136,6 +137,7 @@ export async function GetSeedCountries(
       const seedCountry: SeedCountry = {
         ISO2Code: countryISO2,
         ISO3Code: row[CountryCSVHeaders['cca3']],
+        region: row[CountryCSVHeaders['region']],
         englishShortName: englishShortName,
         englishLongName: row[CountryCSVHeaders['name.official']],
         domesticName: row[CountryCSVHeaders['name.official']],

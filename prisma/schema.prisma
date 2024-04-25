@@ -9,6 +9,15 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+model Region {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  Countries Country[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Country {
   id       Int    @id @default(autoincrement())
   iso2Code String @unique @db.VarChar(2)
@@ -21,6 +30,9 @@ model Country {
 
   lat  Float
   long Float
+
+  regionId Int
+  Region   Region @relation(fields: [regionId], references: [id])
 
   Cities City[]
 

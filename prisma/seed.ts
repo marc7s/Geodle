@@ -1,15 +1,23 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Region } from '@prisma/client';
 import { GetSeedCountries, SeedCountry } from './seeds/countries';
 import { GetSeedCities, SeedCity } from './seeds/cities';
-import { prismaEncodeStringList } from '@/utils';
+import { createConsoleProgressBar, prismaEncodeStringList } from '@/utils';
 
 const prisma = new PrismaClient();
 
-function timeout(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+async function upsertRegion(name: string) {
+  return await prisma.region.upsert({
+    where: {
+      name: name,
+    },
+    update: {},
+    create: {
+      name: name,
+    },
+  });
 }
 
-async function createCountry(seedCountry: SeedCountry) {
+async function createCountry(seedCountry: SeedCountry, region: Region) {
   return await prisma.country.create({
     data: {
       iso2Code: seedCountry.ISO2Code,
@@ -20,6 +28,7 @@ async function createCountry(seedCountry: SeedCountry) {
       aliases: prismaEncodeStringList(seedCountry.aliases),
       lat: seedCountry.coordinates.lat,
       long: seedCountry.coordinates.long,
+      regionId: region.id,
     },
   });
 }
@@ -55,14 +64,24 @@ async function main() {
   const seedCities: SeedCity[] = await GetSeedCities();
   const seedCountries: SeedCountry[] = await GetSeedCountries(seedCities);
 
-  seedCountries.forEach(async (sc) => {
-    await createCountry(sc);
-  });
+  // Insert countries and regions
+  const countryProgress = createConsoleProgressBar('Inserting countries');
+  countryProgress.start(seedCountries.length + 1, 1);
+  for (const seedCountry of seedCountries) {
+    const region = await upsertRegion(seedCountry.region);
+    await createCountry(seedCountry, region);
+    countryProgress.increment();
+  }
+  countryProgress.stop();
 
-  // There are so many cities that seeding them all causes the database to run out of memory
-  // Therefore, split the cities into batches before inserting them
-  const batchSize: number = 5000;
-  const timeoutBackoffCoefficient: number = 0.5;
+  // Insert cities
+  const cityProgress = createConsoleProgressBar('Inserting cities');
+  cityProgress.start(seedCities.length + 1, 1);
+
+  // There are so many cities that seeding them all in parallell causes the database to run out of memory
+  // However, seeding them all in series is much slower
+  // Therefore, split the cities into batches before inserting the batches in parallell
+  const batchSize: number = 10_000;
   const cityBatches: SeedCity[][] = [];
   let currBatch: SeedCity[] = [];
 
@@ -75,21 +94,17 @@ async function main() {
     }
   }
 
-  // Insert each batch one after the other, with an incremental backoff between each batch
-  for (let i = 0; i < cityBatches.length; i++) {
-    const indexStart: number = i * batchSize;
-    const indexEnd: number =
-      i === cityBatches.length - 1
-        ? seedCities.length
-        : (i + 1) * batchSize - 1;
-    console.log(
-      `[${i + 1}/${cityBatches.length}] Creating cities ${indexStart}-${indexEnd}`
+  // Insert the cities in parallell, but wait until the entire batch is complete before continuing with the next
+  for (const cityBatch of cityBatches) {
+    await Promise.all(
+      cityBatch.map(async (sc) => {
+        await createCity(sc).then(() => {
+          cityProgress.increment();
+        });
+      })
     );
-    cityBatches[i].forEach(async (sc) => {
-      await createCity(sc);
-    });
-    await timeout(timeoutBackoffCoefficient * i * 1000);
   }
+  cityProgress.stop();
 }
 
 main()
