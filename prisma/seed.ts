@@ -1,7 +1,10 @@
 import { PrismaClient, Region } from '@prisma/client';
 import { GetSeedCountries, SeedCountry } from './seeds/countries';
 import { GetSeedCities, SeedCity } from './seeds/cities';
-import { createConsoleProgressBar, prismaEncodeStringList } from '@/utils';
+import {
+  createConsoleProgressBar,
+  prismaEncodeStringList,
+} from '@/backendUtils';
 
 const prisma = new PrismaClient();
 

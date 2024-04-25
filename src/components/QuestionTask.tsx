@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './QuestionTask.module.scss';
+import { isCorrect } from '@/utils';
 
 export interface Question {
   knownMatches: string[];
@@ -13,51 +14,57 @@ export interface Question {
 
 interface Props {
   question: Question;
-  onCorrectAnswer: (_: Question) => void;
-  onIncorrectAnswer: (_: Question) => void;
+  onCorrectAnswer: (_: Question, correctAnswer: string) => void;
+  onIncorrectAnswer: (_: Question, correctAnswer: string | undefined) => void;
+  allowGivingUp?: boolean;
 }
 
 export default function QuestionTask({
   question,
   onCorrectAnswer,
   onIncorrectAnswer,
+  allowGivingUp = true,
 }: Props) {
   const [answer, setAnswer] = useState('');
 
   if (!question) return <>Unknown question!</>;
 
-  const answers: string[] = question.caseSensitive
-    ? question.answers
-    : question.answers.map((a) => a.toLocaleLowerCase());
-
   function onAnswerChange(newAnswer: string) {
     setAnswer(newAnswer);
-    if (
-      answers.includes(
-        question.caseSensitive ? newAnswer : newAnswer.toLocaleLowerCase()
-      )
-    )
-      onCorrectAnswer(question);
-    else onIncorrectAnswer(question);
+    const matchingAnswer: string | undefined = question.answers.find((a) =>
+      isCorrect(newAnswer, a, question.caseSensitive)
+    );
+
+    if (matchingAnswer) {
+      onCorrectAnswer(question, matchingAnswer);
+      setAnswer('');
+    } else onIncorrectAnswer(question, matchingAnswer);
   }
 
   return (
     <>
-      <div className={question.correct ? styles.correct : styles.incorrect}>
-        {question.question}:
+      <div
+        className={`${question.correct ? styles.correct : styles.incorrect} flex`}
+      >
+        <h1 className='text-xl mr-3'>{question.question}:</h1>
         <input
+          className='text-xl'
           type='text'
           value={answer}
           onChange={(event) => {
             onAnswerChange(event.target.value);
           }}
         />
-        <input
-          type='button'
-          tabIndex={-1}
-          onClick={() => onAnswerChange(question.answers[0])}
-          value='Give up'
-        />
+        {allowGivingUp ? (
+          <input
+            type='button'
+            tabIndex={-1}
+            onClick={() => onAnswerChange(question.answers[0])}
+            value='Give up'
+          />
+        ) : (
+          <></>
+        )}
       </div>
     </>
   );

@@ -1,5 +1,5 @@
 import { Country, Region } from '@prisma/client';
-import { Presets, SingleBar } from 'cli-progress';
+
 import { Point } from 'pigeon-maps';
 
 export interface MapConfig {
@@ -46,22 +46,21 @@ export const MapDefaultConfigs: {
   },
 };
 
-export function createConsoleProgressBar(title: string) {
-  return new SingleBar(
-    {
-      format: `${title} [{bar}] {percentage}% | {value}/{total} | Elapsed: {duration_formatted} | ETA: {eta_formatted}`,
-    },
-    Presets.shades_classic
-  );
+export function isCorrect(
+  answer: string,
+  correct: string,
+  caseSensitive: boolean = false
+) {
+  if (!caseSensitive) {
+    answer = answer.toLocaleLowerCase();
+    correct = correct.toLocaleLowerCase();
+  }
+
+  return answer === correct;
 }
 
 export function getFlagURL(country: Country): string {
   return `https://raw.githubusercontent.com/marc7s/countries/master/data/${country.iso3Code.toLocaleLowerCase()}.svg`;
-}
-
-export function prismaEncodeStringList(str: string[]): string {
-  // There is a limit to the string length, so we only encode the first N elements, so that the total size is below a threshold
-  return str.reduce((acc, curr) => (acc.length > 500 ? acc : acc + curr), '');
 }
 
 export function prismaDecodeStringList(str: string): string[] {
