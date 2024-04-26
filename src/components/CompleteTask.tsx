@@ -42,6 +42,7 @@ export default function CompleteTask({
         <QuestionTask
           key={q.question}
           question={q}
+          onQuestionStarted={() => {}}
           onCorrectAnswer={onCorrectAnswer}
           onIncorrectAnswer={onIncorrectAnswer}
         />

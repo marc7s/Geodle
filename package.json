@@ -16,11 +16,18 @@
   },
   "dependencies": {
     "@prisma/client": "^5.12.1",
+    "@radix-ui/react-alert-dialog": "^1.0.5",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
     "csv-parse": "^5.5.5",
+    "lucide-react": "^0.373.0",
     "next": "14.2.2",
     "pigeon-maps": "^0.21.5",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",

@@ -16,6 +16,7 @@ interface Props {
   question: Question;
   onCorrectAnswer: (_: Question, correctAnswer: string) => void;
   onIncorrectAnswer: (_: Question, correctAnswer: string | undefined) => void;
+  onQuestionStarted: () => void;
   allowGivingUp?: boolean;
 }
 
@@ -23,14 +24,18 @@ export default function QuestionTask({
   question,
   onCorrectAnswer,
   onIncorrectAnswer,
+  onQuestionStarted,
   allowGivingUp = true,
 }: Props) {
   const [answer, setAnswer] = useState('');
+  const [started, setStarted] = useState<boolean>(false);
 
   if (!question) return <>Unknown question!</>;
 
   function onAnswerChange(newAnswer: string) {
     setAnswer(newAnswer);
+    if (!started) onQuestionStarted();
+    setStarted(true);
     const matchingAnswer: string | undefined = question.answers.find((a) =>
       isCorrect(newAnswer, a, question.caseSensitive)
     );

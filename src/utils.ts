@@ -59,6 +59,64 @@ export function isCorrect(
   return answer === correct;
 }
 
+export function getFormattedRelativeTime(date: Date) {
+  return getFormattedElapsedTime(Date.now() - date.valueOf());
+}
+
+// Returns a formatted string of relative elapsed time
+// Examples: '3 seconds', '3 hours 12 minutes', '24 minutes 1 second'
+export function getFormattedElapsedTime(elapsedMS: number) {
+  if (isNaN(elapsedMS)) return 'NaN';
+
+  type TU = 'years' | 'months' | 'days' | 'hours' | 'minutes' | 'seconds';
+  type RTU = [TU, number];
+
+  let unit: RTU | undefined = undefined;
+  let lowerUnit: RTU | undefined = undefined;
+
+  const unitDiffs: RTU[] = [
+    ['years', 60 * 60 * 24 * 365],
+    ['months', 60 * 60 * 24 * 30],
+    ['days', 60 * 60 * 24],
+    ['hours', 60 * 60],
+    ['minutes', 60],
+    ['seconds', 1],
+  ];
+
+  function getUnitAmount(amountMS: number, [_, secondsInUnit]: RTU) {
+    return Math.max(0, Math.round(amountMS / 1000 / secondsInUnit));
+  }
+
+  function formatAmountAndUnit(amountMS: number, unit: RTU): string {
+    const [timeUnit, _] = unit;
+    const unitAmount: number = getUnitAmount(amountMS, unit);
+    return `${unitAmount} ${unitAmount == 1 ? timeUnit.slice(0, -1) : timeUnit}`;
+  }
+
+  for (const uDiff of unitDiffs) {
+    const timeUnit = uDiff[0];
+
+    // If we found the unit in the last iteration, we are now at the lower unit
+    if (unit !== undefined) {
+      lowerUnit = uDiff;
+      break;
+    }
+
+    // If we have reached a small enough unit, or we are at the smallest unit
+    if (
+      getUnitAmount(elapsedMS, uDiff) > 0 ||
+      timeUnit === unitDiffs[unitDiffs.length - 1][0]
+    ) {
+      unit = uDiff;
+    }
+  }
+
+  // Fallback to seconds
+  if (unit === undefined) return `${elapsedMS / 1000} seconds`;
+
+  return `${formatAmountAndUnit(elapsedMS, unit)}${lowerUnit === undefined ? '' : ' ' + formatAmountAndUnit(elapsedMS - 1000 * getUnitAmount(elapsedMS, unit) * unit[1], lowerUnit)}`;
+}
+
 export function getFlagURL(country: Country): string {
   return `https://raw.githubusercontent.com/marc7s/countries/master/data/${country.iso3Code.toLocaleLowerCase()}.svg`;
 }
