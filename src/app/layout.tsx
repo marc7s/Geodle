@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={inter.className}>{children}</body>
+      <body className={`p-5 ${inter.className}`}>{children}</body>
     </html>
   );
 }

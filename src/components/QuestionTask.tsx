@@ -8,6 +8,7 @@ export interface Question {
   knownMatches: string[];
   question: string;
   answers: string[];
+  imageUrl?: string;
   correct?: boolean;
   caseSensitive?: boolean;
 }
@@ -17,6 +18,7 @@ interface Props {
   onCorrectAnswer: (_: Question, correctAnswer: string) => void;
   onIncorrectAnswer: (_: Question, correctAnswer: string | undefined) => void;
   onQuestionStarted: () => void;
+  isReusable?: boolean;
   allowGivingUp?: boolean;
 }
 
@@ -25,10 +27,12 @@ export default function QuestionTask({
   onCorrectAnswer,
   onIncorrectAnswer,
   onQuestionStarted,
+  isReusable = false,
   allowGivingUp = true,
 }: Props) {
   const [answer, setAnswer] = useState('');
   const [started, setStarted] = useState<boolean>(false);
+  const [disabled, setDisabled] = useState<boolean>(false);
 
   if (!question) return <>Unknown question!</>;
 
@@ -42,8 +46,11 @@ export default function QuestionTask({
 
     if (matchingAnswer) {
       onCorrectAnswer(question, matchingAnswer);
-      setAnswer('');
-    } else onIncorrectAnswer(question, matchingAnswer);
+      setAnswer(isReusable ? '' : matchingAnswer);
+      if (!isReusable) setDisabled(true);
+    } else {
+      onIncorrectAnswer(question, matchingAnswer);
+    }
   }
 
   return (
@@ -59,9 +66,11 @@ export default function QuestionTask({
           onChange={(event) => {
             onAnswerChange(event.target.value);
           }}
+          disabled={disabled}
         />
         {allowGivingUp ? (
           <input
+            className='ml-2 cursor-pointer'
             type='button'
             tabIndex={-1}
             onClick={() => onAnswerChange(question.answers[0])}

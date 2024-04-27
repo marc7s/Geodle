@@ -13,6 +13,7 @@ import CompletedDialog, {
   DialogAction,
 } from './ui/CompletedDialog';
 import GiveUpDialog from './ui/GiveUpDialog';
+import { Progress } from '@/components/ui/progress';
 
 export interface PointInfo {
   position: Point;
@@ -186,10 +187,22 @@ export default function MapPointGuesser(props: Props) {
           ))}
         </Map>
       </div>
+      <div className='my-3 flex flex-row justify-center items-center'>
+        <Progress
+          value={
+            (100 * points.filter((p) => p.complete).length) / points.length
+          }
+        />
+        <div className='ml-2'>
+          {points.filter((p) => p.complete).length}/{points.length}
+        </div>
+      </div>
+
       <div>
         <QuestionTask
           question={question}
           allowGivingUp={false}
+          isReusable={true}
           onQuestionStarted={() => {
             setStatus({ ...status, timeStarted: Date.now() });
           }}
