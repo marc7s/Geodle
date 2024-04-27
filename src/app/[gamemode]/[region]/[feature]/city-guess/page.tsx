@@ -1,21 +1,23 @@
-import { getCapitals, stringToRegion } from '@/api';
+import { getCapitals } from '@/api';
 import MapPointGuesser, { PointInfo } from '@/components/MapPointGuesser';
-import { MapDefaultConfigs } from '@/utils';
-import { City, Region } from '@prisma/client';
+import { MapDefaultConfigs, generateStaticFeatureParams } from '@/utils';
+import { City } from '@prisma/client';
 import styles from './styles.module.scss';
+import { GameParams } from '@/types/routing/dynamicParams';
 
-export default async function CityGuessPage({ params }: any) {
+// CityGuessGame only supports capitals
+export async function generateStaticParams() {
+  return generateStaticFeatureParams('capitals');
+}
+
+export default async function CityGuessPage({ params }: GameParams) {
   let cities: City[] = [];
-  let type: string = '';
 
-  const region: Region | 'World' | null = await stringToRegion(params.region);
-  if (!region) return <>Error! Region unknown</>;
-  const config = MapDefaultConfigs.GetConfig(region);
+  const config = MapDefaultConfigs.GetConfig(params.region);
 
-  switch (params.type.toLocaleLowerCase()) {
+  switch (params.feature) {
     case 'capitals':
-      cities = await getCapitals(region);
-      type = 'capitals';
+      cities = await getCapitals(params.region);
       break;
   }
 
@@ -34,7 +36,7 @@ export default async function CityGuessPage({ params }: any) {
     <div className={styles.container}>
       <div className={styles.titleSection}>
         <h1>
-          Guess {type} in {region === 'World' ? region : region.name}
+          Guess {params.feature} in {params.region}
         </h1>
       </div>
       <div>

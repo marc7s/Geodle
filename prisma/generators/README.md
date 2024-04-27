@@ -1,0 +1,3 @@
+There is probably a better way of doing this, but I did not manage to find it when looking through the documentation for Prisma. The closest I got was (type utilities)[https://www.prisma.io/docs/orm/prisma-client/type-safety#type-utilities] or (validators)[https://www.prisma.io/docs/orm/prisma-client/type-safety/prisma-validator].
+
+What these scripts do is automatically generate types based on the data in the database. For example, the `genRegions.ts` script generates a `.ts` file with a custom string literal for all the regions it found in the database. That type can then be used by `Next.js` to validate dynamic parameters for example.

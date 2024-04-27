@@ -1,9 +1,10 @@
-import { arrayPartition, getFlagURL, prismaDecodeStringList } from '@/utils';
+import { getFlagURL, prismaDecodeStringList } from '@/utils';
 import { Question } from '@/components/QuestionTask';
 import { CombinedCountry, getCombinedCountries } from '@/api';
 import CompleteGuesser, {
   CompleteQuestion,
 } from '@/components/CompleteGuesser';
+import { Attribute, CompleteGameParams } from '@/types/routing/dynamicParams';
 
 function getSetValues(...arr: (string | null)[]) {
   const result: string[] = [];
@@ -14,13 +15,20 @@ function getSetValues(...arr: (string | null)[]) {
   return result;
 }
 
-function combinedToQuestions(
+interface PossibleQuestion {
+  attribute: Attribute;
+  question: string;
+  answers: string[];
+  imageUrl?: string;
+}
+
+function combinedToPossibleQuestions(
   combined: CombinedCountry,
   includeFlagQuestion: boolean
-): Question[] {
-  const questions: Question[] = [
+): PossibleQuestion[] {
+  const questions: PossibleQuestion[] = [
     {
-      knownMatches: ['name', 'shortName', 'longName'],
+      attribute: 'name',
       question: 'Name',
       answers: getSetValues(
         combined.country.englishShortName,
@@ -29,7 +37,7 @@ function combinedToQuestions(
       ),
     },
     {
-      knownMatches: ['capital'],
+      attribute: 'capital',
       question: 'Capital',
       answers: [
         combined.capital.englishName,
@@ -42,7 +50,7 @@ function combinedToQuestions(
     ? [
         ...questions,
         {
-          knownMatches: ['flag'],
+          attribute: 'flag',
           question: 'Flag',
           imageUrl: getFlagURL(combined.country),
           answers: [combined.country.englishShortName],
@@ -51,24 +59,33 @@ function combinedToQuestions(
     : questions;
 }
 
-export default async function CompletePage({ params }: any) {
+function possibleToQuestion(possibleQuestion: PossibleQuestion): Question {
+  return {
+    question: possibleQuestion.question,
+    answers: possibleQuestion.answers,
+    imageUrl: possibleQuestion.imageUrl,
+  };
+}
+
+export default async function CompletePage({ params }: CompleteGameParams) {
   const combined: CombinedCountry[] = await getCombinedCountries();
   const completeQuestions: CompleteQuestion[] = combined
-    .map((c) => combinedToQuestions(c, params.known.includes('flag')))
+    .map((c) => combinedToPossibleQuestions(c, params.known.includes('flag')))
     .map((qs) => {
-      const [knownData, complete] = arrayPartition(qs, (q) =>
-        q.knownMatches.some((m) => params.known.includes(m))
-      );
       return {
-        knownQuestions: knownData,
-        completeQuestions: complete,
+        knownQuestions: qs
+          .filter((q) => params.known.includes(q.attribute))
+          .map((pq) => possibleToQuestion(pq)),
+        completeQuestions: qs
+          .filter((q) => params.guess?.includes(q.attribute))
+          .map((pq) => possibleToQuestion(pq)),
       };
     });
 
   return (
     <div className='flex flex-col justify-center items-center'>
       <div className='m-10 max-w-lg'>
-        <CompleteGuesser questions={completeQuestions} known={params.known} />
+        <CompleteGuesser questions={completeQuestions} />
       </div>
     </div>
   );

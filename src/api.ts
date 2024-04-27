@@ -1,27 +1,30 @@
 import { City, Country, Region } from '@prisma/client';
 import { arrayShuffle } from './utils';
-import prisma from './app/db';
+import prisma from './db';
+import { GameRegion } from './types/routing/generated/regions';
 
 export interface CombinedCountry {
   country: Country;
   capital: City;
 }
 
-export async function stringToRegion(
-  str: string
+export async function gameRegionToRegion(
+  gameRegion: GameRegion
 ): Promise<Region | 'World' | null> {
-  if (str.toLocaleLowerCase() === 'world') return 'World';
+  if (gameRegion === 'World') return 'World';
   return await prisma.region.findUnique({
-    where: { name: str.toLocaleLowerCase() },
+    where: { name: gameRegion },
   });
 }
 
-export async function getCapitals(region: Region | 'World'): Promise<City[]> {
+export async function getCapitals(region: GameRegion): Promise<City[]> {
   const capitals: City[] = await prisma.city.findMany({
     where: {
       isCapital: true,
       country: {
-        regionId: region === 'World' ? undefined : region.id,
+        Region: {
+          name: region === 'World' ? undefined : region,
+        },
       },
     },
   });

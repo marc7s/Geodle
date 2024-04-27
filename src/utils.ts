@@ -1,6 +1,8 @@
 import { Country, Region } from '@prisma/client';
 
 import { Point } from 'pigeon-maps';
+import { GameRegion } from './types/routing/generated/regions';
+import { Feature } from './types/routing/dynamicParams';
 
 export interface MapConfig {
   position: Point;
@@ -15,7 +17,7 @@ export const MapDefaultConfigs: {
   Europe: MapConfig;
   Oceania: MapConfig;
   Antarctic: MapConfig;
-  GetConfig: (r: Region | 'World') => MapConfig;
+  GetConfig: (r: GameRegion) => MapConfig;
 } = {
   World: { position: [48, 16], zoom: 3 },
   Americas: { position: [14, -83], zoom: 3 },
@@ -25,9 +27,9 @@ export const MapDefaultConfigs: {
   Oceania: { position: [-25, 143], zoom: 3 },
   Antarctic: { position: [-50, 10], zoom: 2 },
   GetConfig: (r) => {
-    if (r === 'World') return MapDefaultConfigs.World;
-
-    switch (r.name) {
+    switch (r) {
+      case 'World':
+        return MapDefaultConfigs.World;
       case 'Americas':
         return MapDefaultConfigs.Americas;
       case 'Asia':
@@ -57,6 +59,12 @@ export function isCorrect(
   }
 
   return answer === correct;
+}
+
+export function generateStaticFeatureParams(...allowedFeatures: Feature[]) {
+  return allowedFeatures.map((f) => {
+    return { feature: f };
+  });
 }
 
 export function getFormattedRelativeTime(date: Date) {

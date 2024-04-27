@@ -19,7 +19,6 @@ export interface CompleteQuestion {
 
 interface Props {
   questions: CompleteQuestion[];
-  known: string[];
 }
 
 export default function CompleteGuesser({ questions }: Props) {

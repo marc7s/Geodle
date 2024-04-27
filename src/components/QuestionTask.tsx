@@ -5,7 +5,6 @@ import styles from './QuestionTask.module.scss';
 import { isCorrect } from '@/utils';
 
 export interface Question {
-  knownMatches: string[];
   question: string;
   answers: string[];
   imageUrl?: string;
