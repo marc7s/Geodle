@@ -33,7 +33,17 @@ export default function NavBar() {
           <NavigationMenuContent>
             <Link href='/training/Europe/countries/complete/flag/name'>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                Flag-Name
+                Flag - Name
+              </NavigationMenuLink>
+            </Link>
+            <Link href='/training/Europe/countries/complete/flag/capital&name'>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                Flag - Capital&Name
+              </NavigationMenuLink>
+            </Link>
+            <Link href='/training/Europe/countries/complete/capital&flag/name'>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                Capital&Flag - Name
               </NavigationMenuLink>
             </Link>
           </NavigationMenuContent>

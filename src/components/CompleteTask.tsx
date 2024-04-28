@@ -64,12 +64,16 @@ export default function CompleteTask({
 
       {taskQuestions.map((q, i) => (
         <div className='my-2' key={i}>
-          <QuestionTask
-            question={q}
-            onQuestionStarted={() => {}}
-            onCorrectAnswer={onCorrectAnswer}
-            onIncorrectAnswer={onIncorrectAnswer}
-          />
+          {q.imageUrl ? (
+            <div>Cannot guess images yet</div>
+          ) : (
+            <QuestionTask
+              question={q}
+              onQuestionStarted={() => {}}
+              onCorrectAnswer={onCorrectAnswer}
+              onIncorrectAnswer={onIncorrectAnswer}
+            />
+          )}
         </div>
       ))}
     </div>

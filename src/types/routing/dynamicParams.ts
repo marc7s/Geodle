@@ -9,7 +9,7 @@ export const features = ['capitals', 'countries'] as const;
 export type Feature = (typeof features)[number];
 
 // Define a custom type for the possible attributes of a feature
-export const attributes = ['name', 'capital', 'flag'] as const;
+export const attributes = ['capital', 'name', 'flag'] as const;
 export type Attribute = (typeof attributes)[number];
 
 interface GameParamObject {
@@ -19,8 +19,8 @@ interface GameParamObject {
 }
 
 interface CompleteGameParamObject extends GameParamObject {
-  known: Attribute;
-  guess: Attribute;
+  knownAttributes: string;
+  guessAttributes: string;
 }
 
 export interface GameParams {

@@ -58,7 +58,6 @@ export default function MapPointGuesser(props: Props) {
   }, [points]);
 
   const question: Question = {
-    knownMatches: [],
     question: 'Enter the name of a capital',
     answers: props.points
       .map((p) => p.answers)

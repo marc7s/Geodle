@@ -28,14 +28,20 @@ export async function getCapitals(region: GameRegion): Promise<City[]> {
       },
     },
   });
-  return arrayShuffle(capitals);
+  return capitals;
 }
 
-export async function getCombinedCountries(): Promise<CombinedCountry[]> {
-  const countries: Country[] = await prisma.country.findMany();
-  const capitals: City[] = await prisma.city.findMany({
-    where: { isCapital: true },
+export async function getCombinedCountries(
+  region: GameRegion
+): Promise<CombinedCountry[]> {
+  const countries: Country[] = await prisma.country.findMany({
+    where: {
+      Region: {
+        name: region === 'World' ? undefined : region,
+      },
+    },
   });
+  const capitals: City[] = await getCapitals(region);
 
   const combined: CombinedCountry[] = countries.map((c: Country) => {
     const capital: City | undefined = capitals.find(
@@ -49,5 +55,5 @@ export async function getCombinedCountries(): Promise<CombinedCountry[]> {
     };
   });
 
-  return arrayShuffle(combined);
+  return combined;
 }

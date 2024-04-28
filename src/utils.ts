@@ -61,6 +61,26 @@ export function isCorrect(
   return answer === correct;
 }
 
+// Returns a powerset, i.e. all possible combinations of the elements in the provided array
+// However, the result is not a 2D-array, but instead an array of &-joined parameters
+// As an example, `getAllParamCombinations(['1', '2'])` would return:
+// ['1', '1&2', '2']
+export function getAllParamCombinations(arr: string[]) {
+  arr = arr.sort();
+  const set = [];
+  const listSize = arr.length;
+  const combinationsCount = 1 << listSize;
+
+  for (let i = 1; i < combinationsCount; i++) {
+    const combination = [];
+    for (let j = 0; j < listSize; j++) {
+      if (i & (1 << j)) combination.push(arr[j]);
+    }
+    set.push(combination);
+  }
+  return set.map((combs) => combs.join('&'));
+}
+
 export function generateStaticFeatureParams(...allowedFeatures: Feature[]) {
   return allowedFeatures.map((f) => {
     return { feature: f };

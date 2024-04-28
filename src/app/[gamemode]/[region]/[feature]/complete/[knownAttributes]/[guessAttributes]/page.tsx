@@ -1,4 +1,4 @@
-import { getFlagURL, prismaDecodeStringList } from '@/utils';
+import { arrayShuffle, getFlagURL, prismaDecodeStringList } from '@/utils';
 import { Question } from '@/components/QuestionTask';
 import { CombinedCountry, getCombinedCountries } from '@/api';
 import CompleteGuesser, {
@@ -68,16 +68,35 @@ function possibleToQuestion(possibleQuestion: PossibleQuestion): Question {
 }
 
 export default async function CompletePage({ params }: CompleteGameParams) {
-  const combined: CombinedCountry[] = await getCombinedCountries();
-  const completeQuestions: CompleteQuestion[] = combined
-    .map((c) => combinedToPossibleQuestions(c, params.known.includes('flag')))
+  const knownAttributes: string[] = decodeURIComponent(
+    params.knownAttributes
+  ).split('&');
+  const guessAttributes: string[] = decodeURIComponent(
+    params.guessAttributes
+  ).split('&');
+
+  for (const guessAttribute of guessAttributes) {
+    if (knownAttributes.includes(guessAttribute))
+      return (
+        <>
+          Illegal combination! There must be no overlap between known and guess
+          attributes
+        </>
+      );
+  }
+
+  const combined: CombinedCountry[] = await getCombinedCountries(params.region);
+  const completeQuestions: CompleteQuestion[] = arrayShuffle(combined)
+    .map((c) =>
+      combinedToPossibleQuestions(c, knownAttributes.includes('flag'))
+    )
     .map((qs) => {
       return {
         knownQuestions: qs
-          .filter((q) => params.known.includes(q.attribute))
+          .filter((q) => knownAttributes.includes(q.attribute))
           .map((pq) => possibleToQuestion(pq)),
         completeQuestions: qs
-          .filter((q) => params.guess?.includes(q.attribute))
+          .filter((q) => guessAttributes.includes(q.attribute))
           .map((pq) => possibleToQuestion(pq)),
       };
     });

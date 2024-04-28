@@ -1,9 +1,10 @@
 import { attributes } from '@/types/routing/dynamicParams';
+import { getAllParamCombinations } from '@/utils';
 
-// Generate allowed guess values
+// Generate allowed known values
 export async function generateStaticParams() {
-  return attributes.map((a) => {
-    return { guess: a };
+  return getAllParamCombinations(attributes.map((a) => a)).map((a) => {
+    return { knownAttributes: a };
   });
 }
 
