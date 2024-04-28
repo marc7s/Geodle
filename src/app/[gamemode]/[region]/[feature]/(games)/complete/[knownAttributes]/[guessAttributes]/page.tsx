@@ -1,19 +1,15 @@
-import { arrayShuffle, getFlagURL, prismaDecodeStringList } from '@/utils';
+import {
+  arrayShuffle,
+  getFlagURL,
+  getSetValues,
+  prismaDecodeStringList,
+} from '@/utils';
 import { Question } from '@/components/QuestionTask';
 import { CombinedCountry, getCombinedCountries } from '@/api';
+import { Attribute, CompleteGameParams } from '@/types/routing/dynamicParams';
 import CompleteGuesser, {
   CompleteQuestion,
-} from '@/components/CompleteGuesser';
-import { Attribute, CompleteGameParams } from '@/types/routing/dynamicParams';
-
-function getSetValues(...arr: (string | null)[]) {
-  const result: string[] = [];
-  arr.forEach((v) => {
-    if (v) result.push(v);
-  });
-
-  return result;
-}
+} from '@/components/games/complete/CompleteGuesser';
 
 interface PossibleQuestion {
   attribute: Attribute;

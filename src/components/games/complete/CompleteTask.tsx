@@ -1,6 +1,6 @@
 'use client';
 
-import QuestionTask, { Question } from './QuestionTask';
+import QuestionTask, { Question } from '../../QuestionTask';
 import styles from './CompleteTask.module.scss';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';

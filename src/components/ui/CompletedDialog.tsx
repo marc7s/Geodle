@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { getFormattedElapsedTime } from '@/utils';
+import { getFormattedElapsedTime } from '@/format';
 
 export interface DialogAction {
   title: string;

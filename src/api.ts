@@ -31,9 +31,7 @@ export async function getCapitals(region: GameRegion): Promise<City[]> {
   return capitals;
 }
 
-export async function getCombinedCountries(
-  region: GameRegion
-): Promise<CombinedCountry[]> {
+export async function getCountries(region: GameRegion): Promise<Country[]> {
   const countries: Country[] = await prisma.country.findMany({
     where: {
       Region: {
@@ -41,6 +39,13 @@ export async function getCombinedCountries(
       },
     },
   });
+  return countries;
+}
+
+export async function getCombinedCountries(
+  region: GameRegion
+): Promise<CombinedCountry[]> {
+  const countries: Country[] = await getCountries(region);
   const capitals: City[] = await getCapitals(region);
 
   const combined: CombinedCountry[] = countries.map((c: Country) => {

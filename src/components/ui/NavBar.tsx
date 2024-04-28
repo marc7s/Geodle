@@ -29,6 +29,21 @@ export default function NavBar() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
+          <NavigationMenuTrigger>Country Guess</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <Link href='/training/World/countries/country-guess'>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                World
+              </NavigationMenuLink>
+            </Link>
+            <Link href='/training/Europe/countries/country-guess'>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                Europe
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
           <NavigationMenuTrigger>Complete</NavigationMenuTrigger>
           <NavigationMenuContent>
             <Link href='/training/Europe/countries/complete/flag/name'>

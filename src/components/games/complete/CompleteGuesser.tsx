@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Question } from './QuestionTask';
+import { Question } from '../../QuestionTask';
 import CompleteTask from './CompleteTask';
 import { useEffect, useState } from 'react';
 
