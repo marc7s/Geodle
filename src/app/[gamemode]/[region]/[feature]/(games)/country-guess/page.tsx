@@ -1,7 +1,7 @@
 import { getCountries } from '@/api';
 import { arrayGetRandomElement, generateStaticFeatureParams } from '@/utils';
 import { Country } from '@prisma/client';
-import { GameParams } from '@/types/routing/dynamicParams';
+import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
 import CountryGuesser from '@/components/games/countryGuess/CountryGuesser';
 
 // CountryGuessGame only supports countries
@@ -39,7 +39,7 @@ export default async function CountryGuessPage({ params }: GameParams) {
   return (
     <>
       <CountryGuesser
-        title={`Guess the country in ${params.region}`}
+        title={`Guess the country in ${formatRegion(params.region)}`}
         allowedGuesses={getAllowedGuesses()}
         countries={countries}
         dropdownCountries={dropdownCountries}

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import NavBar from '@/components/ui/NavBar';
+import { Toaster } from '@/components/ui/sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +22,12 @@ export default function RootLayout({
         <div className='min-w-full flex justify-center mb-5'>
           <NavBar></NavBar>
         </div>
-        {children}
+        <main>{children}</main>
+        <Toaster
+          toastOptions={{
+            style: { background: 'hsl(var(--accent-foreground))' },
+          }}
+        />
       </body>
     </html>
   );

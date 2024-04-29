@@ -3,7 +3,7 @@ import MapPointGuesser, { PointInfo } from '@/components/MapPointGuesser';
 import { MapDefaultConfigs, generateStaticFeatureParams } from '@/utils';
 import { City } from '@prisma/client';
 import styles from './styles.module.scss';
-import { GameParams } from '@/types/routing/dynamicParams';
+import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
 
 // CityGuessGame only supports capitals
 export async function generateStaticParams() {
@@ -36,7 +36,7 @@ export default async function CityGuessPage({ params }: GameParams) {
     <div className={styles.container}>
       <div className={styles.titleSection}>
         <h1>
-          Guess {params.feature} in {params.region}
+          Guess {params.feature} in {formatRegion(params.region)}
         </h1>
       </div>
       <div>

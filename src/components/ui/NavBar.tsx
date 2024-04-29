@@ -19,6 +19,16 @@ export default function NavBar() {
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
+          <NavigationMenuTrigger>Geodle</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <Link href='/training/Europe/countries/geodle'>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                Europe
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
           <NavigationMenuTrigger>City Guess</NavigationMenuTrigger>
           <NavigationMenuContent>
             <Link href='/training/Europe/capitals/city-guess'>

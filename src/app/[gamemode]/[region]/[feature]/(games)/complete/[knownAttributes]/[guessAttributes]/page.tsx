@@ -6,7 +6,11 @@ import {
 } from '@/utils';
 import { Question } from '@/components/QuestionTask';
 import { CombinedCountry, getCombinedCountries } from '@/api';
-import { Attribute, CompleteGameParams } from '@/types/routing/dynamicParams';
+import {
+  Attribute,
+  CompleteGameParams,
+  formatRegion,
+} from '@/types/routing/dynamicParams';
 import CompleteGuesser, {
   CompleteQuestion,
 } from '@/components/games/complete/CompleteGuesser';
@@ -98,10 +102,16 @@ export default async function CompletePage({ params }: CompleteGameParams) {
     });
 
   return (
-    <div className='flex flex-col justify-center items-center'>
-      <div className='m-10 max-w-lg'>
-        <CompleteGuesser questions={completeQuestions} />
+    <>
+      <h1 className='text-center text-2xl'>
+        Complete the missing information for these {params.feature} in{' '}
+        {formatRegion(params.region)}
+      </h1>
+      <div className='flex flex-col justify-center items-center'>
+        <div className='m-10 max-w-lg'>
+          <CompleteGuesser questions={completeQuestions} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

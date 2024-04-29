@@ -8,6 +8,29 @@ export type GameMode = (typeof gameModes)[number];
 export const features = ['capitals', 'countries'] as const;
 export type Feature = (typeof features)[number];
 
+export function formatSingularFeature(feature: Feature): string {
+  switch (feature) {
+    case 'countries':
+      return 'country';
+    case 'capitals':
+      return 'capital';
+  }
+}
+
+export function formatRegion(region: GameRegion): string {
+  switch (region) {
+    case 'Africa':
+    case 'Asia':
+    case 'Europe':
+    case 'Oceania':
+      return region;
+    case 'Americas':
+    case 'Antarctic':
+    case 'World':
+      return `the ${region}`;
+  }
+}
+
 // Define a custom type for the possible attributes of a feature
 export const attributes = ['capital', 'name', 'flag'] as const;
 export type Attribute = (typeof attributes)[number];
