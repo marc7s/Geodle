@@ -2,6 +2,25 @@
 
 1. Install the `Prettier` VS Code extension
 
+# Games
+
+## Geodle
+
+A game inspired by [Wordle](https://www.nytimes.com/games/wordle/index.html) by Josh Wardle.
+Code partly reworked from [Weirdle](https://github.com/alanrsoares/weirdle/tree/main).
+
+## City Guess
+
+A game inspired by quizzes [like this one](https://www.sporcle.com/games/g/europecapitals).
+
+## Country Guess
+
+A game inspired by [Worldle](https://worldle.teuteuf.fr/).
+
+## Complete
+
+A quizzing game where you need to fill in the blanks.
+
 # Generated README
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
