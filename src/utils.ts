@@ -1,8 +1,19 @@
-import { Country, Region } from '@prisma/client';
+import { Country } from '@prisma/client';
 
 import { Point } from 'pigeon-maps';
 import { GameRegion } from './types/routing/generated/regions';
-import { Feature } from './types/routing/dynamicParams';
+import { Feature, GameMode } from './types/routing/dynamicParams';
+import { createHash } from 'crypto';
+import { Game } from './types/games';
+
+export interface DailyGameConfig {
+  game: Game;
+  gameMode: GameMode;
+  region: GameRegion;
+  feature: Feature;
+}
+
+export type DailyGameAdditionalConfig = { [key: string]: string };
 
 export interface MapConfig {
   position: Point;
@@ -102,6 +113,68 @@ export function getSetValues(...arr: (string | null)[]) {
   return result;
 }
 
+export function getSolution<T>(
+  config: DailyGameConfig,
+  possibilities: T[],
+  additionalConfig?: DailyGameAdditionalConfig
+): T | undefined {
+  switch (config.gameMode) {
+    case 'daily':
+      return getDailySolution(possibilities, config, additionalConfig);
+    case 'training':
+      return arrayGetRandomElement(possibilities);
+  }
+}
+
+export function getSolutions<T>(
+  config: DailyGameConfig,
+  possibilities: T[],
+  additionalConfig?: DailyGameAdditionalConfig,
+  numberOfSolutions?: number
+): T[] | undefined {
+  switch (config.gameMode) {
+    case 'daily':
+      const solution = getDailySolution(
+        possibilities,
+        config,
+        additionalConfig
+      );
+      return solution === undefined ? undefined : [solution];
+    case 'training':
+      return arrayShuffle(possibilities).slice(0, numberOfSolutions);
+  }
+}
+
+export function getDailySolution<T>(
+  possibilities: T[],
+  config: DailyGameConfig,
+  additionalConfig: DailyGameAdditionalConfig = {}
+): T | undefined {
+  if (possibilities.length < 1) return;
+  const configID: string = Object.entries(additionalConfig)
+    .map(([key, value]) => `${key}=${value}`)
+    .join('-');
+  const identifier: string = `${config.game}-${config.region}-${config.feature}${configID.length > 0 ? '-' + configID : ''}-${new Date().toISOString().split('T')[0]}`;
+  const dateHash: string = createHash('sha256')
+    .update(identifier)
+    .digest('base64');
+
+  const seed: number = dateHash
+    .split('')
+    .reduce(
+      (hashCode, currentVal) =>
+        (hashCode =
+          currentVal.charCodeAt(0) +
+          (hashCode << 6) +
+          (hashCode << 16) -
+          hashCode),
+      0
+    );
+
+  return arraySeededShuffle(possibilities, seed).at(0);
+}
+
+// Fisher-Yates shuffle
 export function arrayShuffle<T>(arr: T[]) {
   let currentIndex = arr.length;
   let randomIndex = 0;
@@ -117,6 +190,31 @@ export function arrayShuffle<T>(arr: T[]) {
       arr[randomIndex],
       arr[currentIndex],
     ];
+  }
+
+  return arr;
+}
+
+// Fisher-Yates shuffle with seed
+export function arraySeededShuffle<T>(arr: T[], seed: number): T[] {
+  function random(seed: number) {
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+  }
+
+  let currentIndex = arr.length;
+  let randomIndex = 0;
+
+  // While there are elements left to shuffle
+  while (currentIndex != 0) {
+    // Pick a (seeded) random remaining element
+    randomIndex = Math.floor(random(seed) * currentIndex--);
+
+    [arr[currentIndex], arr[randomIndex]] = [
+      arr[randomIndex],
+      arr[currentIndex],
+    ];
+    ++seed;
   }
 
   return arr;

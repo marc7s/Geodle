@@ -1,7 +1,7 @@
 import {
-  arrayShuffle,
   getFlagURL,
   getSetValues,
+  getSolutions,
   prismaDecodeStringList,
 } from '@/utils';
 import { Question } from '@/components/QuestionTask';
@@ -86,7 +86,23 @@ export default async function CompletePage({ params }: CompleteGameParams) {
   }
 
   const combined: CombinedCountry[] = await getCombinedCountries(params.region);
-  const completeQuestions: CompleteQuestion[] = arrayShuffle(combined)
+  const combinedCountries: CombinedCountry[] | undefined = getSolutions(
+    {
+      game: 'Complete',
+      gameMode: params.gamemode,
+      region: params.region,
+      feature: params.feature,
+    },
+    combined,
+    {
+      knownAttributes: knownAttributes.join('&'),
+      guessAttributes: guessAttributes.join('&'),
+    }
+  );
+
+  if (!combinedCountries) return <>Error! Could not get solutions</>;
+
+  const completeQuestions: CompleteQuestion[] = combinedCountries
     .map((c) =>
       combinedToPossibleQuestions(c, knownAttributes.includes('flag'))
     )

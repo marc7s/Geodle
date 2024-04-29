@@ -1,6 +1,10 @@
 import { getCapitals } from '@/api';
 import MapPointGuesser, { PointInfo } from '@/components/MapPointGuesser';
-import { MapDefaultConfigs, generateStaticFeatureParams } from '@/utils';
+import {
+  MapDefaultConfigs,
+  generateStaticFeatureParams,
+  getSolutions,
+} from '@/utils';
 import { City } from '@prisma/client';
 import styles from './styles.module.scss';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
@@ -21,7 +25,19 @@ export default async function CityGuessPage({ params }: GameParams) {
       break;
   }
 
-  const points: PointInfo[] = cities.map((c) => {
+  const guessCities: City[] | undefined = getSolutions(
+    {
+      game: 'CityGuess',
+      gameMode: params.gamemode,
+      region: params.region,
+      feature: params.feature,
+    },
+    cities
+  );
+
+  if (!guessCities) return <>Error! Could not get solutions</>;
+
+  const points: PointInfo[] = guessCities.map((c) => {
     return {
       position: [c.lat, c.long],
       complete: false,

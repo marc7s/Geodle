@@ -1,5 +1,5 @@
 import { getCountries } from '@/api';
-import { arrayGetRandomElement, generateStaticFeatureParams } from '@/utils';
+import { generateStaticFeatureParams, getSolution } from '@/utils';
 import { Country } from '@prisma/client';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
 import CountryGuesser from '@/components/games/countryGuess/CountryGuesser';
@@ -12,7 +12,15 @@ export async function generateStaticParams() {
 export default async function CountryGuessPage({ params }: GameParams) {
   const countries: Country[] = await getCountries(params.region);
   const dropdownCountries: Country[] = await getCountries('World');
-  const correctCountry: Country | undefined = arrayGetRandomElement(countries);
+  const correctCountry: Country | undefined = getSolution(
+    {
+      game: 'CountryGuess',
+      gameMode: params.gamemode,
+      region: params.region,
+      feature: params.feature,
+    },
+    countries
+  );
 
   if (!correctCountry)
     return <>Error! Could not generate the correct country</>;

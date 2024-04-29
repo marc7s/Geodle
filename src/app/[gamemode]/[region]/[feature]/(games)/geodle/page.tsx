@@ -1,5 +1,5 @@
 import { getCountries } from '@/api';
-import { arrayGetRandomElement, generateStaticFeatureParams } from '@/utils';
+import { generateStaticFeatureParams, getSolution } from '@/utils';
 import { Country } from '@prisma/client';
 import {
   GameParams,
@@ -15,7 +15,15 @@ export async function generateStaticParams() {
 
 export default async function GeodlePage({ params }: GameParams) {
   const countries: Country[] = await getCountries(params.region);
-  const correctCountry: Country | undefined = arrayGetRandomElement(countries);
+  const correctCountry: Country | undefined = getSolution(
+    {
+      game: 'Geodle',
+      gameMode: params.gamemode,
+      region: params.region,
+      feature: params.feature,
+    },
+    countries
+  );
 
   if (!correctCountry)
     return <>Error! Could not generate the correct country</>;

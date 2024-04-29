@@ -63,8 +63,8 @@ export default function CompleteGuesser({ questions }: Props) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <CarouselPrevious style={{ display: current > 1 ? 'flex' : 'none' }} />
+        <CarouselNext style={{ display: current < count ? 'flex' : 'none' }} />
       </Carousel>
       <div className='py-2 text-center text-sm text-muted-foreground'>
         Question {current} of {count}
