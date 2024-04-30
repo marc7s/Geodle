@@ -94,9 +94,9 @@ export default function SelectQuestionTask({
           <CommandInput placeholder={searchPlaceholder} />
           <CommandEmpty>No matches found.</CommandEmpty>
           <ComboGroup>
-            {options.map((option) => (
+            {options.map((option, i) => (
               <CommandItem
-                key={option.value}
+                key={i}
                 value={option.value}
                 onSelect={(currentValue) => {
                   setValue(currentValue === value ? '' : currentValue);

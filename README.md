@@ -13,7 +13,7 @@ Code partly reworked from [Weirdle](https://github.com/alanrsoares/weirdle/tree/
 
 A game inspired by quizzes [like this one](https://www.sporcle.com/games/g/europecapitals).
 
-## Country Guess
+## Trail Guess
 
 A game inspired by [Worldle](https://worldle.teuteuf.fr/).
 

@@ -29,9 +29,9 @@ export default function NavBar() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>City Guess</NavigationMenuTrigger>
+          <NavigationMenuTrigger>City Guesser</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <Link href='/training/Europe/capitals/city-guess'>
+            <Link href='/training/Europe/capitals/city-guesser'>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Europe
               </NavigationMenuLink>
@@ -39,14 +39,14 @@ export default function NavBar() {
           </NavigationMenuContent>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Country Guess</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Trail Guesser</NavigationMenuTrigger>
           <NavigationMenuContent>
-            <Link href='/training/World/countries/country-guess'>
+            <Link href='/training/World/countries/trail-guesser'>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 World
               </NavigationMenuLink>
             </Link>
-            <Link href='/training/Europe/countries/country-guess'>
+            <Link href='/training/Europe/countries/trail-guesser'>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 Europe
               </NavigationMenuLink>

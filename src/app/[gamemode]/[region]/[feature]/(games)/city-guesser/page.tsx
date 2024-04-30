@@ -14,7 +14,7 @@ export async function generateStaticParams() {
   return generateStaticFeatureParams('capitals');
 }
 
-export default async function CityGuessPage({ params }: GameParams) {
+export default async function CityGuesserPage({ params }: GameParams) {
   let cities: City[] = [];
 
   const config = MapDefaultConfigs.GetConfig(params.region);
@@ -27,7 +27,7 @@ export default async function CityGuessPage({ params }: GameParams) {
 
   const guessCities: City[] | undefined = getSolutions(
     {
-      game: 'CityGuess',
+      game: 'CityGuesser',
       gameMode: params.gamemode,
       region: params.region,
       feature: params.feature,

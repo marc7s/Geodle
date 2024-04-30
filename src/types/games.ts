@@ -1,1 +1,1 @@
-export type Game = 'CityGuess' | 'CountryGuess' | 'Complete' | 'Geodle';
+export type Game = 'CityGuesser' | 'TrailGuesser' | 'Complete' | 'Geodle';
