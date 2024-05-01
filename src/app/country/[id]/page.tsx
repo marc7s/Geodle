@@ -1,5 +1,5 @@
-import prisma from '@/app/db';
 import CountryInfo from '@/components/CountryInfo';
+import prisma from '@/db';
 import { Country } from '@prisma/client';
 
 async function getCountry(slug: string): Promise<Country | undefined> {

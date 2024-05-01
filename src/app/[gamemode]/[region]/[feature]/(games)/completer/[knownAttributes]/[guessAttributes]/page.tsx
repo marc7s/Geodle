@@ -67,7 +67,7 @@ function possibleToQuestion(possibleQuestion: PossibleQuestion): Question {
   };
 }
 
-export default async function CompletePage({ params }: CompleteGameParams) {
+export default async function CompleterPage({ params }: CompleteGameParams) {
   const knownAttributes: string[] = decodeURIComponent(
     params.knownAttributes
   ).split('&');

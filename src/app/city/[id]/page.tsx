@@ -1,4 +1,4 @@
-import prisma from '@/app/db';
+import prisma from '@/db';
 import { City } from '@prisma/client';
 
 async function getCity(slug: string): Promise<City | undefined> {

@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`p-5 ${inter.className}`}>
-        <div className='min-w-full flex justify-center mb-5'>
+        <div className='min-w-full flex justify-center mb-10'>
           <NavBar></NavBar>
         </div>
         <main>{children}</main>
