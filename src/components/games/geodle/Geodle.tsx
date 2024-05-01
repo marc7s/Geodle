@@ -110,15 +110,14 @@ export default function Geodle({
       st.letter === correctString[i] ? { ...st, status: 'correct' } : st
     );
 
-    const numberOfCorrect: number = correctStatuses.filter(
-      (st) => st.status === 'correct'
-    ).length;
-
     return correctStatuses.map((st, i) =>
       st.status === 'correct'
         ? st
         : correctString.includes(st.letter) &&
-            charOccurences(correctString, st.letter) - numberOfCorrect >
+            charOccurences(correctString, st.letter) -
+              correctStatuses.filter(
+                (cs) => cs.letter === st.letter && st.status === 'correct'
+              ).length >
               charOccurences(guess.slice(0, i), st.letter)
           ? { ...st, status: 'present' }
           : { ...st, status: 'absent' }
