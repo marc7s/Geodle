@@ -11,7 +11,11 @@ export type MapStyle =
 export const stadiamaps =
   (mapStyle: MapStyle = 'Default', apiKey: string | undefined) =>
   (x: number, y: number, z: number, dpr = 1): string => {
-    if (apiKey === undefined && process.env.NODE_ENV === 'production')
+    if (
+      apiKey === undefined &&
+      process.env.NODE_ENV === 'production' &&
+      mapStyle in ['Satellite']
+    )
       throw new Error(
         'Stadia Maps requires an API key. Set it in the environment variables.'
       );
@@ -61,5 +65,5 @@ export const stadiamaps =
       : 'jpg';
 
     // Only use the api key in production, to not spend credits during development
-    return `https://tiles.stadiamaps.com/styles/${style}/${z}/${x}/${y}${dpr >= 2 ? '@2x' : ''}.${ext}${process.env.NODE_ENV === 'production' ? '?api_key=' + apiKey : ''}`;
+    return `https://tiles.stadiamaps.com/styles/${style}/${z}/${x}/${y}${dpr >= 2 ? '@2x' : ''}.${ext}${apiKey && process.env.NODE_ENV === 'production' ? '?api_key=' + apiKey : ''}`;
   };

@@ -58,6 +58,23 @@ const minigames: {
   },
 ];
 
+const infoPages: {
+  title: string;
+  description: string;
+  relHref: string;
+}[] = [
+  {
+    title: 'Countries',
+    description: 'See information about each country',
+    relHref: 'country',
+  },
+  {
+    title: 'Capitals',
+    description: 'See information about each capital',
+    relHref: 'capital',
+  },
+];
+
 export default function NavBar() {
   return (
     <NavigationMenu>
@@ -126,6 +143,22 @@ export default function NavBar() {
                   )}
                 >
                   {minigame.description}
+                </ListItem>
+              ))}
+            </ul>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuTrigger>Info</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <ul className='grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] '>
+              {infoPages.map((infoPage) => (
+                <ListItem
+                  key={infoPage.title}
+                  title={infoPage.title}
+                  href={`/info/${infoPage.relHref}`}
+                >
+                  {infoPage.description}
                 </ListItem>
               ))}
             </ul>
