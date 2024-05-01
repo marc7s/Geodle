@@ -92,7 +92,9 @@ export default function GameWrapper({
           finish: finishGame,
           gameStatus: status,
         }}
-      ></GameContext.Provider>
+      >
+        {children}
+      </GameContext.Provider>
       <CompletedDialog
         actions={completedActions}
         finishedStatus={status.finishedStatus}
