@@ -115,12 +115,12 @@ export default function Geodle({
     ).length;
 
     return correctStatuses.map((st, i) =>
-      correctString.includes(st.letter) &&
-      charOccurences(correctString, st.letter) - numberOfCorrect >
-        charOccurences(guess.slice(0, i), st.letter)
-        ? { ...st, status: 'present' }
-        : st.status === 'correct'
-          ? st
+      st.status === 'correct'
+        ? st
+        : correctString.includes(st.letter) &&
+            charOccurences(correctString, st.letter) - numberOfCorrect >
+              charOccurences(guess.slice(0, i), st.letter)
+          ? { ...st, status: 'present' }
           : { ...st, status: 'absent' }
     );
   }

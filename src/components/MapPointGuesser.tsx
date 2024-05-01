@@ -121,7 +121,7 @@ export default function MapPointGuesser(props: Props) {
           defaultCenter={props.config.position}
           defaultZoom={props.config.zoom}
           minZoom={2}
-          maxZoom={5}
+          maxZoom={4}
           onClick={unmarkAll}
           provider={stadiamaps(props.style)}
         >

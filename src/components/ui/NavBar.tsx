@@ -134,7 +134,7 @@ export default function NavBar() {
                     minigame.gameName,
                     {
                       params: {
-                        gamemode: 'daily',
+                        gamemode: 'training',
                         region: minigame.region ?? 'World',
                         feature: minigame.feature ?? 'countries',
                       },

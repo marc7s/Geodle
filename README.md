@@ -21,6 +21,20 @@ A game inspired by [Worldle](https://worldle.teuteuf.fr/).
 
 A quizzing game where you need to fill in the blanks.
 
+# Deployment
+
+## Dev
+
+1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
+2. Run `npm run deploy-dev` if you need to deploy the database
+3. Build the application with the `DevDockerfile`
+
+## Prod
+
+1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
+2. Run `npm run deploy-prod` if you need to deploy the database
+3. Build the application with the `ProdDockerfile`
+
 # Generated README
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).

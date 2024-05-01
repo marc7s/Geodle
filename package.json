@@ -4,14 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "dotenv -e .env.dev -- next dev",
     "prod": "npm run build",
-    "build": "next build",
+    "build": "npm run generate-prod && dotenv -e .env.prod -- next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy-dev": "dotenv -e .env.dev -- npx prisma migrate dev && npm run generate-value-types",
-    "deploy-prod": "dotenv -e .env.prod -- npx prisma migrate deploy && npm run generate-value-types",
-    "generate-dev": "dotenv -e .env.dev -- npx prisma generate && npm run generate-value-types",
+    "deploy-dev": "dotenv -e .env.dev -- npx prisma migrate dev && dotenv -e .env.dev -- npm run generate-value-types",
+    "deploy-prod": "dotenv -e .env.prod -- npx prisma migrate reset && dotenv -e .env.prod -- npm run generate-value-types",
+    "generate-dev": "dotenv -e .env.dev -- npx prisma generate && dotenv -e .env.dev -- npm run generate-value-types",
+    "generate-prod": "dotenv -e .env.prod -- npm run generate-value-types",
     "generate-value-types": "tsx prisma/generators/*.ts"
   },
   "prisma": {
