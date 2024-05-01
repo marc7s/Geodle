@@ -41,15 +41,11 @@ interface GameParamObject {
   feature: Feature;
 }
 
-interface CompleteGameParamObject extends GameParamObject {
+export interface CompleteGameParams extends GameParamObject {
   knownAttributes: string;
   guessAttributes: string;
 }
 
 export interface GameParams {
   params: GameParamObject;
-}
-
-export interface CompleteGameParams extends GameParamObject {
-  params: CompleteGameParamObject;
 }
