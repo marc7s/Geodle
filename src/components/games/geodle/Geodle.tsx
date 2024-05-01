@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Board } from './Board';
 import { Keyboard } from './Keyboard';
 import { toast } from 'sonner';
+import { useGameContext } from '@/context/Game';
 
 interface CursorPosition {
   x: number;
@@ -35,6 +36,7 @@ export default function Geodle({
   allowedGuessCount,
   allowedGuesses,
 }: Props) {
+  const gameContext = useGameContext();
   const correctNoSpaces: string = correct.replaceAll(' ', '');
   const ROW_COUNT = allowedGuessCount;
   const COLUMN_COUNT = correctNoSpaces.length;
@@ -153,6 +155,14 @@ export default function Geodle({
         ),
         cursor: { x: 0, y: state.cursor.y + 1 },
       });
+
+      if (guess === correctNoSpaces.toLocaleLowerCase())
+        gameContext.finish({
+          gaveUp: false,
+          singleWithTries: true,
+          availableTries: allowedGuessCount,
+          numberOfTries: state.cursor.y + 1,
+        });
       return;
     }
 

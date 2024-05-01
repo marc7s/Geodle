@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { FaLongArrowAltUp } from 'react-icons/fa';
 import { GeoPoint, GeoVector2, getVectorBetweenCoordinates } from '@/geoUtils';
 import { getFormattedDistance } from '@/format';
@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Feature, formatSingularFeature } from '@/types/routing/dynamicParams';
+import { GameContext, useGameContext } from '@/context/Game';
 
 export interface TrailFeature {
   point: GeoPoint;
@@ -47,12 +48,14 @@ export default function TrailGuesser({
   const [guesses, setGuesses] = useState<FeatureGuess[]>([]);
   const singularFeature: string = formatSingularFeature(feature);
 
+  const gameContext: GameContext = useGameContext();
   // Clear the guesses whenever the correct country changes
   useEffect(() => {
     setGuesses([]);
   }, [correctFeature]);
 
   function addGuess(featureGuess: FeatureGuess) {
+    if (guesses.length === 0) gameContext.start();
     setGuesses([...guesses, featureGuess]);
   }
 
@@ -64,6 +67,14 @@ export default function TrailGuesser({
         distance: 0,
         bearingDeg: 0,
       },
+    });
+
+    gameContext.finish({
+      singleWithTries: true,
+
+      gaveUp: false,
+      availableTries: allowedGuesses,
+      numberOfTries: guesses.length,
     });
   }
 

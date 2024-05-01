@@ -8,12 +8,9 @@ import { useEffect, useState } from 'react';
 import QuestionTask, { Question } from './QuestionTask';
 import { MapStyle, stadiamaps } from '@/mapProviders';
 import { isMobile } from 'react-device-detect';
-import CompletedDialog, {
-  CompletedResult,
-  DialogAction,
-} from './ui/CompletedDialog';
-import GiveUpDialog from './ui/GiveUpDialog';
 import { Progress } from '@/components/ui/progress';
+import GiveUpDialog from './ui/GiveUpDialog';
+import { GameContext, useGameContext } from '@/context/Game';
 
 export interface PointInfo {
   position: Point;
@@ -35,20 +32,21 @@ interface Props {
   markerWidth?: number;
 }
 
-interface Status {
-  timeStarted?: number;
-  done: boolean;
-  gaveUp?: boolean;
-}
-
 export default function MapPointGuesser(props: Props) {
+  const gameContext: GameContext = useGameContext();
+
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();
   const [points, setPoints] = useState<PointInfo[]>(props.points);
-  const [status, setStatus] = useState<Status>({ done: false, gaveUp: false });
 
   function finish(gaveUp: boolean) {
-    setStatus({ ...status, done: true, gaveUp: gaveUp });
+    gameContext.finish({
+      guessThemAll: true,
+
+      gaveUp: gaveUp,
+      totalQuestions: points.length,
+      missedAnswers: points.filter((p) => !p.complete).map((p) => p.answers[0]),
+    });
   }
 
   // Check if all points have been correctly guessed
@@ -67,13 +65,6 @@ export default function MapPointGuesser(props: Props) {
       ),
   };
 
-  const completedActions: DialogAction[] = [
-    {
-      title: 'Go again',
-      onClicked: () => location.reload(),
-    },
-  ];
-
   function handleCorrectGuess(_: Question, correctAnswer: string) {
     const pointInfo: PointInfo | undefined = points.find((p) =>
       p.answers.includes(correctAnswer)
@@ -83,31 +74,6 @@ export default function MapPointGuesser(props: Props) {
     setPoints(
       points.map((p) => (p === pointInfo ? { ...p, complete: true } : p))
     );
-  }
-
-  function generateDescription(): string {
-    if (!status.gaveUp) return 'Great job! Here are your statistics:';
-
-    // Get all missed points
-    const missedPoints: PointInfo[] = points.filter((p) => !p.complete);
-
-    // Get a limited list of the missed answers to print
-    const missedAnswers: string[] = missedPoints
-      .slice(0, 15) // Limit the list
-      .map((p) => p.answers[0]); // Get the first answer for each point
-
-    const limitedMissingCount: number =
-      missedPoints.length - missedAnswers.length;
-
-    return `Here are ${limitedMissingCount > 0 ? 'some of ' : ''}the ones you missed:\n\n${missedAnswers.join(', ')}${limitedMissingCount > 0 ? `... (and ${limitedMissingCount} more)` : ''}`;
-  }
-
-  function generateResults(): CompletedResult {
-    return {
-      timeElapsedMS: status.timeStarted ? Date.now() - status.timeStarted : NaN,
-      correct: points.filter((p) => p.complete).length,
-      total: points.length,
-    };
   }
 
   function getPointInfoTitle(pointInfo: PointInfo): string | undefined {
@@ -202,27 +168,14 @@ export default function MapPointGuesser(props: Props) {
           question={question}
           allowGivingUp={false}
           isReusable={true}
-          onQuestionStarted={() => {
-            setStatus({ ...status, timeStarted: Date.now() });
-          }}
+          onQuestionStarted={gameContext.start}
           onCorrectAnswer={handleCorrectGuess}
           onIncorrectAnswer={() => {}}
         ></QuestionTask>
+        <div className='flex flex-row justify-end'>
+          <GiveUpDialog onGiveUp={() => finish(true)}></GiveUpDialog>
+        </div>
       </div>
-      <div className='flex flex-row justify-end'>
-        <GiveUpDialog onGiveUp={() => finish(true)}></GiveUpDialog>
-      </div>
-
-      <CompletedDialog
-        show={status.done}
-        title={status.gaveUp ? 'Nice try!' : undefined}
-        description={generateDescription()}
-        actions={completedActions}
-        results={generateResults()}
-        onClose={() =>
-          setStatus({ timeStarted: undefined, done: false, gaveUp: false })
-        }
-      ></CompletedDialog>
     </div>
   );
 }

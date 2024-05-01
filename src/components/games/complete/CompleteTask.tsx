@@ -4,26 +4,39 @@ import QuestionTask, { Question } from '../../QuestionTask';
 import styles from './CompleteTask.module.scss';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { CompleteQuestion } from './CompleteGuesser';
 
 interface Props {
-  knownQuestions: Question[];
-  questions: Question[];
+  completeQuestion: CompleteQuestion;
   title: string;
-  onAllComplete?: () => void;
+  onTaskComplete?: () => void;
+  taskStarted?: () => void;
 }
 
 export default function CompleteTask({
-  knownQuestions,
-  questions,
+  completeQuestion,
   title,
-  onAllComplete,
+  onTaskComplete: onAllComplete,
+  taskStarted,
 }: Props) {
-  const [taskQuestions, setTaskQuestions] = useState<Question[]>(questions);
+  const [taskQuestions, setTaskQuestions] = useState<Question[]>(
+    completeQuestion.completeQuestions
+  );
 
   // Check if all points have been correctly guessed
   useEffect(() => {
-    if (onAllComplete && taskQuestions.every((q) => q.correct)) onAllComplete();
-  }, [taskQuestions, onAllComplete]);
+    if (completeQuestion.complete) return;
+    if (
+      onAllComplete &&
+      taskQuestions.length > 0 &&
+      taskQuestions.every((q) => q.correct)
+    )
+      onAllComplete();
+  }, [taskQuestions, onAllComplete, completeQuestion.complete]);
+
+  function onQuestionStarted() {
+    if (taskStarted) taskStarted();
+  }
 
   function onCorrectAnswer(question: Question) {
     setTaskQuestions(
@@ -42,7 +55,7 @@ export default function CompleteTask({
       className={`${styles.completeTask} ${taskQuestions.every((q) => q.correct) ? styles.allCorrect : ''}`}
     >
       <h1 className={styles.title}>{title}</h1>
-      {knownQuestions.map((q, i) => (
+      {completeQuestion.knownQuestions.map((q, i) => (
         <div key={i}>
           {q.imageUrl ? (
             <div className='flex justify-center'>
@@ -69,7 +82,7 @@ export default function CompleteTask({
           ) : (
             <QuestionTask
               question={q}
-              onQuestionStarted={() => {}}
+              onQuestionStarted={onQuestionStarted}
               onCorrectAnswer={onCorrectAnswer}
               onIncorrectAnswer={onIncorrectAnswer}
             />
