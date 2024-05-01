@@ -28,7 +28,6 @@ interface Props {
   points: PointInfo[];
   config: MapConfig;
   style: MapStyle;
-  stadiaMapsAPIKey?: string;
   markerWidth?: number;
 }
 
@@ -121,9 +120,10 @@ export default function MapPointGuesser(props: Props) {
           width={800}
           defaultCenter={props.config.position}
           defaultZoom={props.config.zoom}
-          maxZoom={30}
+          minZoom={2}
+          maxZoom={5}
           onClick={unmarkAll}
-          provider={stadiamaps(props.style, props.stadiaMapsAPIKey)}
+          provider={stadiamaps(props.style)}
         >
           {points.map((pi, i) => (
             <Overlay key={i} anchor={pi.position}>

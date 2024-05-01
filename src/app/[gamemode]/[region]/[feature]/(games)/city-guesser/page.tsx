@@ -56,12 +56,7 @@ export default async function CityGuesserPage({ params }: GameParams) {
         </h1>
       </div>
       <div>
-        <MapPointGuesser
-          points={points}
-          config={config}
-          style={'HideAll'}
-          stadiaMapsAPIKey={process.env.STADIA_MAPS_API_KEY}
-        />
+        <MapPointGuesser points={points} config={config} style={'HideAll'} />
       </div>
     </div>
   );

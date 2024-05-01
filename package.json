@@ -9,14 +9,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy-dev": "npx prisma migrate dev && npm run generate-value-types",
-    "generate": "npx prisma generate && npm run generate-value-types",
+    "deploy-dev": "dotenv -e .env.dev -- npx prisma migrate dev && npm run generate-value-types",
+    "deploy-prod": "dotenv -e .env.prod -- npx prisma migrate deploy && npm run generate-value-types",
+    "generate-dev": "dotenv -e .env.dev -- npx prisma generate && npm run generate-value-types",
     "generate-value-types": "tsx prisma/generators/*.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@next/env": "^14.2.3",
     "@prisma/client": "^5.12.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -46,6 +48,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "cli-progress": "^3.12.0",
+    "dotenv-cli": "^7.4.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.2",
     "eslint-config-prettier": "^9.1.0",

@@ -16,7 +16,7 @@ export default function StaticMap(props: Props) {
       width={props.width}
       defaultCenter={props.position}
       defaultZoom={props.zoom ?? 6}
-      provider={stadiamaps(props.mapStyle, undefined)}
+      provider={stadiamaps(props.mapStyle)}
       mouseEvents={false}
       touchEvents={false}
     >
