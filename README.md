@@ -1,6 +1,8 @@
-# Setup
+# Geodle
 
-1. Install the `Prettier` VS Code extension
+Geodle is a fully static (no backend required, meaning it is very simple to host and can utilize CDNs heavily) website with geography themed minigames. The purpose of the website is to learn geography, and to allow you to customize your learning through the minigames. As such, every game is highly customisable, for example allowing you to choose the region (World, Europe, Americas etc). This allows you to focus your training depending on what you would like to improve.
+
+To make the learning enjoyable, Geodle uses minigames of different kinds. All minigames have a `Daily` mode, where the solution is the same during that entire day. This gives you a reason to come back every day to complete the daily games, introducing a reoccuring learning pattern.
 
 # Games
 
@@ -9,67 +11,44 @@
 A game inspired by [Wordle](https://www.nytimes.com/games/wordle/index.html) by Josh Wardle.
 Code partly reworked from [Weirdle](https://github.com/alanrsoares/weirdle/tree/main).
 
+The solution is unknown, but by guessing you will gain information about each letter. Green indicates that the letter is correct, and in the right position. Yellow means that the letter is included in the solution, but at a different position. Gray means that the letter is not part of the solution.
+
 ## City Guess
 
 A game inspired by quizzes [like this one](https://www.sporcle.com/games/g/europecapitals).
+
+You are presented with one or more points on the map, and your task is to guess them all - in any order.
 
 ## Trail Guess
 
 A game inspired by [Worldle](https://worldle.teuteuf.fr/).
 
+The solution is unknown, but with each guess the game will tell you how far away your guess was compared with the solution, and in which direction.
+
 ## Complete
 
 A quizzing game where you need to fill in the blanks.
 
-# Deployment
+This is the most versitile game, you can use it to train flags, capitals, country names, countries and flags at the same time and so on.
 
-## Dev
+# Development
+
+## Setup
+
+1. Install the `Prettier` VS Code extension
+2. Setup a Microsoft SQL Server instance with an admin user, as Prisma needs to modify the database during deployment
+3. Create a `.env.dev` and `.env.prod` environment file and fill them in according to the example files
+
+## Deployment
+
+### Dev
 
 1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
 2. Run `npm run deploy-dev` if you need to deploy the database
 3. Build the application with the `DevDockerfile`
 
-## Prod
+### Prod
 
 1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
 2. Run `npm run deploy-prod` if you need to deploy the database
 3. Build the application with the `ProdDockerfile`
-
-# Generated README
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
