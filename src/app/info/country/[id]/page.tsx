@@ -4,7 +4,7 @@ import { Country } from '@prisma/client';
 import { getStaticInfoIDParams, createSlug } from '../../info';
 
 export async function generateStaticParams() {
-  const countries = await getCountries('World');
+  const countries = await getCountries('all', 'World');
   return getStaticInfoIDParams(countries, (c: Country) => [
     c.id.toString(),
     c.englishShortName,
@@ -17,7 +17,7 @@ async function getCountry(slug: string): Promise<Country | undefined> {
   const countryID: number = Number.parseInt(decodedSlug) || -1;
   const countryName: string | undefined = createSlug(decodedSlug);
 
-  const countries = await getCountries('World');
+  const countries = await getCountries('all', 'World');
   const country = countries.find(
     (c) =>
       c.id === countryID ||

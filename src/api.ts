@@ -1,26 +1,21 @@
 import { City, Country, Region } from '@prisma/client';
 import prisma from './db';
 import { GameRegion } from './types/routing/generated/regions';
+import { CountrySelection } from './types/routing/dynamicParams';
 
 export interface CombinedCountry {
   country: Country;
   capital: City;
 }
 
-export async function gameRegionToRegion(
-  gameRegion: GameRegion
-): Promise<Region | 'World' | null> {
-  if (gameRegion === 'World') return 'World';
-  return await prisma.region.findUnique({
-    where: { name: gameRegion },
-  });
-}
-
 export async function getRegions(): Promise<Region[]> {
   return await prisma.region.findMany();
 }
 
-export async function getCapitals(region: GameRegion): Promise<City[]> {
+export async function getCapitals(
+  selection: CountrySelection,
+  region: GameRegion
+): Promise<City[]> {
   const capitals: City[] = await prisma.city.findMany({
     where: {
       isCapital: true,
@@ -28,28 +23,36 @@ export async function getCapitals(region: GameRegion): Promise<City[]> {
         Region: {
           name: region === 'World' ? undefined : region,
         },
+        isCurated: selection === 'curated' ? true : undefined,
+        isIndependent: selection === 'independent' ? true : undefined,
       },
     },
   });
   return capitals;
 }
 
-export async function getCountries(region: GameRegion): Promise<Country[]> {
+export async function getCountries(
+  selection: CountrySelection,
+  region: GameRegion
+): Promise<Country[]> {
   const countries: Country[] = await prisma.country.findMany({
     where: {
       Region: {
         name: region === 'World' ? undefined : region,
       },
+      isCurated: selection === 'curated' ? true : undefined,
+      isIndependent: selection === 'independent' ? true : undefined,
     },
   });
   return countries;
 }
 
 export async function getCombinedCountries(
+  selection: CountrySelection,
   region: GameRegion
 ): Promise<CombinedCountry[]> {
-  const countries: Country[] = await getCountries(region);
-  const capitals: City[] = await getCapitals(region);
+  const countries: Country[] = await getCountries(selection, region);
+  const capitals: City[] = await getCapitals(selection, region);
 
   const combined: CombinedCountry[] = countries.map((c: Country) => {
     const capital: City | undefined = capitals.find(

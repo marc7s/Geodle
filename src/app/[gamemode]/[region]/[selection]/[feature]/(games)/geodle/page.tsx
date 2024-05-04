@@ -7,6 +7,7 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import Geodle from '@/components/games/geodle/Geodle';
+import { GeodleGame } from '@/types/games';
 
 // GeodleGame supports countries and capitals
 export async function generateStaticParams() {
@@ -14,14 +15,13 @@ export async function generateStaticParams() {
 }
 
 export default async function GeodlePage({ params }: GameParams) {
-  const countries: Country[] = await getCountries(params.region);
+  const countries: Country[] = await getCountries(
+    params.selection,
+    params.region
+  );
   const correctCountry: Country | undefined = getSolution(
-    {
-      game: 'Geodle',
-      gameMode: params.gamemode,
-      region: params.region,
-      feature: params.feature,
-    },
+    GeodleGame,
+    { params: params },
     countries
   );
 

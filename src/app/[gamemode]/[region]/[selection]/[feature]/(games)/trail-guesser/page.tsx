@@ -1,9 +1,5 @@
 import { getCapitals, getCountries } from '@/api';
-import {
-  DailyGameConfig,
-  generateStaticFeatureParams,
-  getSolution,
-} from '@/utils';
+import { generateStaticFeatureParams, getSolution } from '@/utils';
 import { City, Country } from '@prisma/client';
 import {
   GameParams,
@@ -13,6 +9,7 @@ import {
 import TrailGuesser, {
   TrailFeature,
 } from '@/components/games/trailGuesser/TrailGuesser';
+import { TrailGuesserGame } from '@/types/games';
 
 // TrailGuesser supports countries and capitals
 export async function generateStaticParams() {
@@ -38,19 +35,23 @@ function cityToTrailEntity(city: City): TrailFeature {
 export default async function TrailGuesserPage({ params }: GameParams) {
   let dropdownFeatures: TrailFeature[] = [];
   let correctFeature: TrailFeature | undefined = undefined;
-  const config: DailyGameConfig = {
-    game: 'TrailGuesser',
-    gameMode: params.gamemode,
-    region: params.region,
-    feature: params.feature,
+  const config: GameParams = {
+    params: params,
   };
 
   switch (params.feature) {
     case 'countries':
-      const countries: Country[] = await getCountries(params.region);
-      const dropdownCountries: Country[] = await getCountries('World');
+      const countries: Country[] = await getCountries(
+        params.selection,
+        params.region
+      );
+      const dropdownCountries: Country[] = await getCountries(
+        params.selection,
+        'World'
+      );
       dropdownFeatures = dropdownCountries.map((c) => countryToTrailEntity(c));
       const correctCountry: Country | undefined = getSolution(
+        TrailGuesserGame,
         config,
         countries
       );
@@ -59,10 +60,20 @@ export default async function TrailGuesserPage({ params }: GameParams) {
       correctFeature = countryToTrailEntity(correctCountry);
       break;
     case 'capitals':
-      const capitals: City[] = await getCapitals(params.region);
-      const dropdownCapitals: City[] = await getCapitals('World');
+      const capitals: City[] = await getCapitals(
+        params.selection,
+        params.region
+      );
+      const dropdownCapitals: City[] = await getCapitals(
+        params.selection,
+        'World'
+      );
       dropdownFeatures = dropdownCapitals.map((c) => cityToTrailEntity(c));
-      const correctCapital: City | undefined = getSolution(config, capitals);
+      const correctCapital: City | undefined = getSolution(
+        TrailGuesserGame,
+        config,
+        capitals
+      );
       if (!correctCapital)
         return <>Error! Could not generate the correct capital</>;
       correctFeature = cityToTrailEntity(correctCapital);

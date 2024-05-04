@@ -8,8 +8,10 @@ export default async function CountriesPage({
 }: {
   params: { id: string };
 }) {
-  const combinedCountries: CombinedCountry[] =
-    await getCombinedCountries('World');
+  const combinedCountries: CombinedCountry[] = await getCombinedCountries(
+    'all',
+    'World'
+  );
   const regions: Region[] = await getRegions();
   const combinedByRegion: { region: Region; combined: CombinedCountry[] }[] =
     [];

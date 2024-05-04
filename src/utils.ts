@@ -2,16 +2,9 @@ import { Country } from '@prisma/client';
 
 import { Point } from 'pigeon-maps';
 import { GameRegion } from './types/routing/generated/regions';
-import { Feature, GameMode } from './types/routing/dynamicParams';
+import { Feature, GameParams } from './types/routing/dynamicParams';
 import { createHash } from 'crypto';
 import { Game } from './types/games';
-
-export interface DailyGameConfig {
-  game: Game;
-  gameMode: GameMode;
-  region: GameRegion;
-  feature: Feature;
-}
 
 export type DailyGameAdditionalConfig = { [key: string]: string };
 
@@ -52,6 +45,14 @@ export const MapDefaultConfigs: {
     }
   },
 };
+
+export function getHref(
+  game: Game,
+  { params }: GameParams,
+  additionalParams?: string | undefined
+): string {
+  return `/${params.gamemode}/${params.region}/${params.selection}/${params.feature}/${game.linkName}${additionalParams ? additionalParams : ''}`;
+}
 
 export function isCorrect(
   answer: string,
@@ -110,29 +111,32 @@ export function getSetValues(...arr: (string | null)[]) {
 }
 
 export function getSolution<T>(
-  config: DailyGameConfig,
+  game: Game,
+  params: GameParams,
   possibilities: T[],
   additionalConfig?: DailyGameAdditionalConfig
 ): T | undefined {
-  switch (config.gameMode) {
+  switch (params.params.gamemode) {
     case 'daily':
-      return getDailySolution(possibilities, config, additionalConfig);
+      return getDailySolution(possibilities, game, params, additionalConfig);
     case 'training':
       return arrayGetRandomElement(possibilities);
   }
 }
 
 export function getSolutions<T>(
-  config: DailyGameConfig,
+  game: Game,
+  params: GameParams,
   possibilities: T[],
   additionalConfig?: DailyGameAdditionalConfig,
   numberOfSolutions?: number
 ): T[] | undefined {
-  switch (config.gameMode) {
+  switch (params.params.gamemode) {
     case 'daily':
       const solution = getDailySolution(
         possibilities,
-        config,
+        game,
+        params,
         additionalConfig
       );
       return solution === undefined ? undefined : [solution];
@@ -143,14 +147,15 @@ export function getSolutions<T>(
 
 export function getDailySolution<T>(
   possibilities: T[],
-  config: DailyGameConfig,
+  game: Game,
+  { params }: GameParams,
   additionalConfig: DailyGameAdditionalConfig = {}
 ): T | undefined {
   if (possibilities.length < 1) return;
   const configID: string = Object.entries(additionalConfig)
     .map(([key, value]) => `${key}=${value}`)
     .join('-');
-  const identifier: string = `${config.game}-${config.region}-${config.feature}${configID.length > 0 ? '-' + configID : ''}-${new Date().toISOString().split('T')[0]}`;
+  const identifier: string = `${game.displayName}-${params.region}-${params.selection}-${params.feature}${configID.length > 0 ? '-' + configID : ''}-${new Date().toISOString().split('T')[0]}`;
   const dateHash: string = createHash('sha256')
     .update(identifier)
     .digest('base64');

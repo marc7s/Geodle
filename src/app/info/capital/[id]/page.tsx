@@ -4,7 +4,7 @@ import { createSlug, getStaticInfoIDParams } from '../../info';
 import { City } from '@prisma/client';
 
 export async function generateStaticParams() {
-  const capitals = await getCapitals('World');
+  const capitals = await getCapitals('all', 'World');
   return getStaticInfoIDParams(capitals, (c: City) => [
     c.id.toString(),
     c.englishName,
@@ -18,7 +18,7 @@ async function getCombinedCountryFromCapital(
   const capitalID: number = Number.parseInt(decodedSlug) || -1;
   const capitalName: string | undefined = createSlug(decodedSlug);
 
-  const combinedCountries = await getCombinedCountries('World');
+  const combinedCountries = await getCombinedCountries('all', 'World');
 
   const capital = combinedCountries.find(
     (cc) =>

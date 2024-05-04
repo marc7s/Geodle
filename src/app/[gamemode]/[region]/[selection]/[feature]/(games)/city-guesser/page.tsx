@@ -8,6 +8,7 @@ import {
 import { City } from '@prisma/client';
 import styles from './styles.module.scss';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
+import { CityGuesserGame } from '@/types/games';
 
 // CityGuessGame only supports capitals
 export async function generateStaticParams() {
@@ -21,16 +22,14 @@ export default async function CityGuesserPage({ params }: GameParams) {
 
   switch (params.feature) {
     case 'capitals':
-      cities = await getCapitals(params.region);
+      cities = await getCapitals(params.selection, params.region);
       break;
   }
 
   const guessCities: City[] | undefined = getSolutions(
+    CityGuesserGame,
     {
-      game: 'CityGuesser',
-      gameMode: params.gamemode,
-      region: params.region,
-      feature: params.feature,
+      params: params,
     },
     cities
   );

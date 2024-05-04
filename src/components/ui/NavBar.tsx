@@ -12,49 +12,37 @@ import {
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
+import {
+  Game,
+  CityGuesserGame,
+  CompleterGame,
+  GeodleGame,
+  TrailGuesserGame,
+} from '@/types/games';
 import { Feature, GameParams } from '@/types/routing/dynamicParams';
-import { GameRegion } from '@/types/routing/generated/regions';
+import { getHref } from '@/utils';
 
 import Link from 'next/link';
 import React from 'react';
 
-function generateHref(
-  gameName: string,
-  { params }: GameParams,
-  additionalParameters?: string
-) {
-  return `/${params.gamemode}/${params.region}/${params.feature}/${gameName}${additionalParameters ? `/${additionalParameters}` : ''}`;
-}
-
 const minigames: {
-  title: string;
-  gameName: string;
-  description: string;
-  region?: GameRegion;
+  game: Game;
   feature?: Feature;
   additionalParameters?: string;
 }[] = [
   {
-    title: 'City Guesser',
-    gameName: 'city-guesser',
-    description: 'Guess the cities marked in the map',
+    game: CityGuesserGame,
     feature: 'capitals',
   },
   {
-    title: 'Completer',
-    gameName: 'completer',
-    description: 'Complete the missing information',
-    additionalParameters: 'flag/name',
+    game: CompleterGame,
+    additionalParameters: '/flag/name',
   },
   {
-    title: 'Geodle',
-    gameName: 'geodle',
-    description: 'A Wordle variant, but you have to guess a country or capital',
+    game: GeodleGame,
   },
   {
-    title: 'Trail Guesser',
-    gameName: 'trail-guesser',
-    description: 'Every guess guides you toward the correct answer',
+    game: TrailGuesserGame,
   },
 ];
 
@@ -102,21 +90,22 @@ export default function NavBar() {
               </li>
               {minigames.map((minigame) => (
                 <ListItem
-                  key={minigame.title}
-                  title={minigame.title}
-                  href={generateHref(
-                    minigame.gameName,
+                  key={minigame.game.displayName}
+                  title={minigame.game.displayName}
+                  href={getHref(
+                    minigame.game,
                     {
                       params: {
                         gamemode: 'daily',
-                        region: minigame.region ?? 'World',
+                        region: 'World',
+                        selection: 'curated',
                         feature: minigame.feature ?? 'countries',
                       },
                     },
                     minigame.additionalParameters
                   )}
                 >
-                  {minigame.description}
+                  {minigame.game.description}
                 </ListItem>
               ))}
             </ul>
@@ -128,21 +117,22 @@ export default function NavBar() {
             <ul className='grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] '>
               {minigames.map((minigame) => (
                 <ListItem
-                  key={minigame.title}
-                  title={minigame.title}
-                  href={generateHref(
-                    minigame.gameName,
+                  key={minigame.game.displayName}
+                  title={minigame.game.displayName}
+                  href={getHref(
+                    minigame.game,
                     {
                       params: {
                         gamemode: 'training',
-                        region: minigame.region ?? 'World',
+                        region: 'World',
+                        selection: 'curated',
                         feature: minigame.feature ?? 'countries',
                       },
                     },
                     minigame.additionalParameters
                   )}
                 >
-                  {minigame.description}
+                  {minigame.game.description}
                 </ListItem>
               ))}
             </ul>

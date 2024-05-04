@@ -14,6 +14,7 @@ import {
 import CompleteGuesser, {
   CompleteQuestion,
 } from '@/components/games/complete/CompleteGuesser';
+import { CompleterGame } from '@/types/games';
 
 interface PossibleQuestion {
   attribute: Attribute;
@@ -89,13 +90,14 @@ export default async function CompleterPage({
       );
   }
 
-  const combined: CombinedCountry[] = await getCombinedCountries(params.region);
+  const combined: CombinedCountry[] = await getCombinedCountries(
+    params.selection,
+    params.region
+  );
   const combinedCountries: CombinedCountry[] | undefined = getSolutions(
+    CompleterGame,
     {
-      game: 'Complete',
-      gameMode: params.gamemode,
-      region: params.region,
-      feature: params.feature,
+      params: params,
     },
     combined,
     {
