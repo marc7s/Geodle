@@ -21,6 +21,18 @@ enum CountryCSVHeaders {
   'area',
 }
 
+enum CuratedCountryCSVHeaders {
+  'iso3Code' = 0,
+  'curated',
+  'reason',
+}
+
+interface CuratedCountry {
+  iso3Code: string;
+  isCurated: boolean;
+  reason?: string;
+}
+
 interface IgnoredCountry {
   ISO2Code: string;
   reason: string;
@@ -29,15 +41,23 @@ interface IgnoredCountry {
 export const ignoredCountries: IgnoredCountry[] = [
   {
     ISO2Code: 'AQ',
-    reason: 'Antarctica, not a country',
+    reason: 'Part of Antarctica',
+  },
+  {
+    ISO2Code: 'TF',
+    reason: 'Part of Antarctica',
+  },
+  {
+    ISO2Code: 'GS',
+    reason: 'Part of Antarctica',
   },
   {
     ISO2Code: 'BV',
-    reason: 'Island outside Antarctica, dependency of Norway',
+    reason: 'Part of Antarctica',
   },
   {
     ISO2Code: 'HM',
-    reason: 'Australian external territory, uninhabited',
+    reason: 'Part of Antarctica',
   },
   {
     ISO2Code: 'UM',
@@ -48,6 +68,8 @@ export const ignoredCountries: IgnoredCountry[] = [
 export interface SeedCountry {
   ISO2Code: string;
   ISO3Code: string;
+  isIndependent: boolean;
+  isCurated: boolean;
   region: string;
   englishShortName: string;
   englishLongName?: string;
@@ -67,7 +89,7 @@ export async function GetSeedCountries(
   return new Promise(async (resolve, reject) => {
     // Main dataset
     const csv: CSVData = await parseCSV(
-      'https://raw.githubusercontent.com/marc7s/countries/master/geodl/countries.csv',
+      'https://raw.githubusercontent.com/marc7s/countries/master/geodle/countries.csv',
       ',',
       true
     );
@@ -84,6 +106,15 @@ export async function GetSeedCountries(
     if (!validateCSVHeaders(csvOverride.headers, CountryCSVHeaders))
       reject('Country Override CSV did not follow the expected format');
 
+    // Curated dataset
+    const csvCurated: CSVData = await parseCSV(
+      'prisma/seeds/datasets/countries.curated.csv',
+      ';'
+    );
+
+    if (!validateCSVHeaders(csvCurated.headers, CuratedCountryCSVHeaders))
+      reject('Curated countries CSV did not follow the expected format');
+
     const overrideDataProcesser = getOverrideData(
       'Country override CSV',
       csvOverride,
@@ -94,19 +125,34 @@ export async function GetSeedCountries(
       return reject(overrideDataProcesser.message);
 
     const seedCountries: SeedCountry[] = [];
+    const curatedCountries: CuratedCountry[] = csvCurated.data.map((row) => {
+      return {
+        iso3Code: row[CuratedCountryCSVHeaders['iso3Code']],
+        isCurated: row[CuratedCountryCSVHeaders['curated']] === '1',
+        reason: row[CuratedCountryCSVHeaders['reason']],
+      };
+    });
 
     csv.data.forEach((row) => {
       row = overrideDataProcesser(row);
 
       const countryISO2: string = row[CountryCSVHeaders['cca2']];
+      const countryISO3: string = row[CountryCSVHeaders['cca3']];
       const countryCapitalName: string = row[CountryCSVHeaders['capital']]
         .split(',')[0]
         .trim();
       const englishShortName: string = row[CountryCSVHeaders['name.common']];
+      const countryRegion: string = row[CountryCSVHeaders['region']];
       const logCountryName: string = `country ${englishShortName} (${countryISO2})`;
 
       // Skip ignored countries
       if (ignoredCountries.find((ic) => ic.ISO2Code === countryISO2)) return;
+
+      // Antarctica should be skipped, so ensure all countries in that region are ignored
+      if (countryRegion === 'Antarctic')
+        reject(
+          `Country ${logCountryName} is part of the Antarctic but not in the ignored country list`
+        );
 
       // Validate coordinates
       const [validCoordinates, lat, long] = validateCoordinates(
@@ -134,10 +180,19 @@ export async function GetSeedCountries(
           `Capital name does not match for ${logCountryName}.\nCountry capital: ${countryASCIICapital}\nCity capital: ${cityASCIICapital}`
         );
 
+      const curatedEntry: CuratedCountry | undefined = curatedCountries.find(
+        (cc) => cc.iso3Code === countryISO3
+      );
+
+      if (!curatedEntry)
+        return reject(`No curated entry found for ${logCountryName}`);
+
       const seedCountry: SeedCountry = {
         ISO2Code: countryISO2,
-        ISO3Code: row[CountryCSVHeaders['cca3']],
-        region: row[CountryCSVHeaders['region']],
+        ISO3Code: countryISO3,
+        isIndependent: row[CountryCSVHeaders['independent']] === '1',
+        isCurated: curatedEntry.isCurated,
+        region: countryRegion,
         englishShortName: englishShortName,
         englishLongName: row[CountryCSVHeaders['name.official']],
         domesticName: row[CountryCSVHeaders['name.official']],

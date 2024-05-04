@@ -27,7 +27,6 @@ export const MapDefaultConfigs: {
   Africa: MapConfig;
   Europe: MapConfig;
   Oceania: MapConfig;
-  Antarctic: MapConfig;
   GetConfig: (r: GameRegion) => MapConfig;
 } = {
   World: { position: [48, 16], zoom: 3 },
@@ -36,7 +35,6 @@ export const MapDefaultConfigs: {
   Africa: { position: [2, 20], zoom: 3 },
   Europe: { position: [50, 14], zoom: 4 },
   Oceania: { position: [-25, 143], zoom: 3 },
-  Antarctic: { position: [-50, 10], zoom: 2 },
   GetConfig: (r) => {
     switch (r) {
       case 'World':
@@ -45,8 +43,6 @@ export const MapDefaultConfigs: {
         return MapDefaultConfigs.Africa;
       case 'Americas':
         return MapDefaultConfigs.Americas;
-      case 'Antarctic':
-        return MapDefaultConfigs.Antarctic;
       case 'Asia':
         return MapDefaultConfigs.Asia;
       case 'Europe':

@@ -36,8 +36,6 @@ export default async function GeodlePage({ params }: GameParams) {
         return 5;
       case 'Americas':
         return 4;
-      case 'Antarctic':
-        return 2;
       case 'Asia':
         return 5;
       case 'Europe':

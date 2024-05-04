@@ -25,7 +25,6 @@ export function formatRegion(region: GameRegion): string {
     case 'Oceania':
       return region;
     case 'Americas':
-    case 'Antarctic':
     case 'World':
       return `the ${region}`;
   }

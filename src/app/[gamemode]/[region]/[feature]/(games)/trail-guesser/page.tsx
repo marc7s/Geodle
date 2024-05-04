@@ -80,8 +80,6 @@ export default async function TrailGuesserPage({ params }: GameParams) {
         return 8;
       case 'Americas':
         return 6;
-      case 'Antarctic':
-        return 2;
       case 'Asia':
         return 8;
       case 'Europe':

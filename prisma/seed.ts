@@ -25,6 +25,8 @@ async function createCountry(seedCountry: SeedCountry, region: Region) {
     data: {
       iso2Code: seedCountry.ISO2Code,
       iso3Code: seedCountry.ISO3Code,
+      isIndependent: seedCountry.isIndependent,
+      isCurated: seedCountry.isCurated,
       englishShortName: seedCountry.englishShortName,
       englishLongName: seedCountry.englishLongName,
       domesticName: seedCountry.domesticName,

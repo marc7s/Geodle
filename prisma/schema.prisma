@@ -20,9 +20,11 @@ model Region {
 }
 
 model Country {
-  id       Int    @id @default(autoincrement())
-  iso2Code String @unique @db.VarChar(2)
-  iso3Code String @unique @db.VarChar(3)
+  id            Int     @id @default(autoincrement())
+  iso2Code      String  @unique @db.VarChar(2)
+  iso3Code      String  @unique @db.VarChar(3)
+  isIndependent Boolean
+  isCurated     Boolean @default(false)
 
   englishShortName String  @unique
   englishLongName  String?
