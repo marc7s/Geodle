@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import NavBar from '@/components/ui/NavBar';
 import { Toaster } from '@/components/ui/sonner';
+import Footer from './footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,16 +19,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en' suppressHydrationWarning>
-      <body className={`p-5 ${inter.className}`}>
-        <div className='min-w-full flex justify-center mb-10'>
-          <NavBar></NavBar>
+      <body className={`${inter.className}`}>
+        <div className='p-5 min-h-screen mb-[-6rem]'>
+          <div className='min-w-full flex justify-center mb-10'>
+            <NavBar></NavBar>
+          </div>
+          <main className='mb-10'>{children}</main>
+          <Toaster
+            toastOptions={{
+              style: { background: 'hsl(var(--accent-foreground))' },
+            }}
+          />
         </div>
-        <main>{children}</main>
-        <Toaster
-          toastOptions={{
-            style: { background: 'hsl(var(--accent-foreground))' },
-          }}
-        />
+        <Footer />
       </body>
     </html>
   );
