@@ -20,29 +20,32 @@ import {
   TrailGuesserGame,
 } from '@/types/games';
 import { Feature, GameParams } from '@/types/routing/dynamicParams';
-import { getHref } from '@/utils';
 
 import Link from 'next/link';
 import React from 'react';
 
 const minigames: {
   game: Game;
+  hrefGenerator: (_: GameParams) => string;
   feature?: Feature;
-  additionalParameters?: string;
 }[] = [
   {
     game: CityGuesserGame,
+    hrefGenerator: (gp: GameParams) => CityGuesserGame.getHref(gp),
     feature: 'capitals',
   },
   {
     game: CompleterGame,
-    additionalParameters: '/flag/name',
+    hrefGenerator: (gp: GameParams) =>
+      CompleterGame.getCompleterHref(gp, ['flag'], ['name']),
   },
   {
     game: GeodleGame,
+    hrefGenerator: (gp: GameParams) => GeodleGame.getHref(gp),
   },
   {
     game: TrailGuesserGame,
+    hrefGenerator: (gp: GameParams) => TrailGuesserGame.getHref(gp),
   },
 ];
 
@@ -92,18 +95,14 @@ export default function NavBar() {
                 <ListItem
                   key={minigame.game.displayName}
                   title={minigame.game.displayName}
-                  href={getHref(
-                    minigame.game,
-                    {
-                      params: {
-                        gamemode: 'daily',
-                        region: 'World',
-                        selection: 'curated',
-                        feature: minigame.feature ?? 'countries',
-                      },
+                  href={minigame.hrefGenerator({
+                    params: {
+                      gamemode: 'daily',
+                      region: 'World',
+                      selection: 'curated',
+                      feature: minigame.feature ?? 'countries',
                     },
-                    minigame.additionalParameters
-                  )}
+                  })}
                 >
                   {minigame.game.description}
                 </ListItem>
@@ -119,24 +118,27 @@ export default function NavBar() {
                 <ListItem
                   key={minigame.game.displayName}
                   title={minigame.game.displayName}
-                  href={getHref(
-                    minigame.game,
-                    {
-                      params: {
-                        gamemode: 'training',
-                        region: 'World',
-                        selection: 'curated',
-                        feature: minigame.feature ?? 'countries',
-                      },
+                  href={minigame.hrefGenerator({
+                    params: {
+                      gamemode: 'training',
+                      region: 'World',
+                      selection: 'curated',
+                      feature: minigame.feature ?? 'countries',
                     },
-                    minigame.additionalParameters
-                  )}
+                  })}
                 >
                   {minigame.game.description}
                 </ListItem>
               ))}
             </ul>
           </NavigationMenuContent>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <Link href='/game-builder' legacyBehavior passHref>
+            <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+              Game builder
+            </NavigationMenuLink>
+          </Link>
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuTrigger>Info</NavigationMenuTrigger>

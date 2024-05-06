@@ -46,14 +46,6 @@ export const MapDefaultConfigs: {
   },
 };
 
-export function getHref(
-  game: Game,
-  { params }: GameParams,
-  additionalParams?: string | undefined
-): string {
-  return `/${params.gamemode}/${params.region}/${params.selection}/${params.feature}/${game.linkName}${additionalParams ? additionalParams : ''}`;
-}
-
 export function isCorrect(
   answer: string,
   correct: string,
@@ -68,12 +60,13 @@ export function isCorrect(
 }
 
 // Returns a powerset, i.e. all possible combinations of the elements in the provided array
-// However, the result is not a 2D-array, but instead an array of &-joined parameters
-// As an example, `getAllParamCombinations(['1', '2'])` would return:
-// ['1', '1&2', '2']
-export function getAllParamCombinations(arr: string[]) {
+// However, the result is not a 2D-array, but instead an map with the keys as the parameters for that combination, and the value as the
+// &-joined parameter used in the links
+// As an example, `getAllParamCombinations(['1', '2'])` would return (as a map):
+// [['1'] => '1', ['1', '2'] => '1&2', ['2'] => '2']
+export function getAllParamCombinations<T>(arr: T[]): Map<T[], string> {
   arr = arr.sort();
-  const set = [];
+  const set: Map<T[], string> = new Map();
   const listSize = arr.length;
   const combinationsCount = 1 << listSize;
 
@@ -82,9 +75,9 @@ export function getAllParamCombinations(arr: string[]) {
     for (let j = 0; j < listSize; j++) {
       if (i & (1 << j)) combination.push(arr[j]);
     }
-    set.push(combination);
+    set.set(combination, combination.join('&'));
   }
-  return set.map((combs) => combs.join('&'));
+  return set;
 }
 
 export function generateStaticFeatureParams(...allowedFeatures: Feature[]) {
@@ -108,6 +101,11 @@ export function getSetValues(...arr: (string | null)[]) {
   });
 
   return result;
+}
+
+export function capitalize(str: string): string {
+  if (str.length < 1) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 export function getSolution<T>(

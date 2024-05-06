@@ -1,9 +1,8 @@
-import { attributes } from '@/types/routing/dynamicParams';
-import { getAllParamCombinations } from '@/utils';
+import { CompleterGame } from '@/types/games';
 
 // Generate allowed known values
 export async function generateStaticParams() {
-  return getAllParamCombinations(attributes.map((a) => a)).map((a) => {
+  return [...CompleterGame.knownAttributeCombinations.values()].map((a) => {
     return { knownAttributes: a };
   });
 }
