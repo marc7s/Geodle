@@ -25,8 +25,8 @@ export default async function AboutPage() {
           </li>
           <li>I don&apos;t like ads</li>
           <li>
-            With one game per website, there are a lot of links to keep track of
-            - each website with their own UI and default language
+            With one game per website, there are a lot of links to keep track
+            of; each website with their own UI and default language
           </li>
           <li>Very limited customisability</li>
         </ol>
