@@ -96,6 +96,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
       _buildData();
       _buildMaterial();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globeRef.current]);
 
   const _buildMaterial = () => {
@@ -162,6 +163,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
         });
       startAnimation();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globeData]);
 
   const startAnimation = () => {
@@ -221,6 +223,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
     return () => {
       clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globeRef.current, globeData]);
 
   return (
@@ -237,6 +240,7 @@ export function WebGLRendererConfig() {
     gl.setPixelRatio(window.devicePixelRatio);
     gl.setSize(size.width, size.height);
     gl.setClearColor(0xffaaff, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;
