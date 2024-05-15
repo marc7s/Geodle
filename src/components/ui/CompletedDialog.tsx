@@ -123,9 +123,6 @@ export default function CompletedDialog(props: Props) {
           </AlertDialogHeader>
           {renderContent(props.finishedStatus, props.timeElapsedMS)}
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={props.onClose}>
-              Cancel
-            </AlertDialogCancel>
             {props.actions.map((a, i) => (
               <AlertDialogAction onClick={a.onClicked} key={i}>
                 {a.title}
