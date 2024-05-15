@@ -1,8 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import styles from './QuestionTask.module.scss';
 import { isCorrect } from '@/utils';
+
+const useFocus = (): [any, () => void] => {
+  const htmlElRef: MutableRefObject<any> = useRef(null);
+  const setFocus = (): void => {
+    htmlElRef?.current?.focus?.();
+  };
+
+  return [htmlElRef, setFocus];
+};
 
 export interface Question {
   question: string;
@@ -14,9 +23,10 @@ export interface Question {
 
 interface Props {
   question: Question;
-  onCorrectAnswer: (_: Question, correctAnswer: string) => void;
-  onIncorrectAnswer: (_: Question, correctAnswer: string | undefined) => void;
   onQuestionStarted: () => void;
+  onCorrectAnswer: (_: Question, correctAnswer: string) => void;
+  onIncorrectAnswer?: (_: Question, correctAnswer: string | undefined) => void;
+  focused?: boolean;
   isReusable?: boolean;
   allowGivingUp?: boolean;
 }
@@ -26,12 +36,26 @@ export default function QuestionTask({
   onCorrectAnswer,
   onIncorrectAnswer,
   onQuestionStarted,
+  focused = false,
   isReusable = false,
   allowGivingUp = true,
 }: Props) {
   const [answer, setAnswer] = useState('');
   const [started, setStarted] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
+  const [inputRef, setInputFocus] = useFocus();
+
+  // Set the focus on focus change
+  useEffect(() => {
+    if (focused) setInputFocus();
+  }, [focused, setInputFocus]);
+
+  // Reset the state if the question changes and is not complete (the question was changed)
+  useEffect(() => {
+    if (question.correct) return;
+    setAnswer('');
+    setDisabled(false);
+  }, [question]);
 
   if (!question) return <>Unknown question!</>;
 
@@ -47,7 +71,7 @@ export default function QuestionTask({
       onCorrectAnswer(question, matchingAnswer);
       setAnswer(isReusable ? '' : matchingAnswer);
       if (!isReusable) setDisabled(true);
-    } else {
+    } else if (onIncorrectAnswer) {
       onIncorrectAnswer(question, matchingAnswer);
     }
   }
@@ -55,11 +79,12 @@ export default function QuestionTask({
   return (
     <>
       <div
-        className={`${question.correct ? styles.correct : styles.incorrect} flex`}
+        className={`${question.correct ? styles.correct : styles.incorrect} flex px-3 py-[0.5rem] rounded-lg`}
       >
         <h1 className='text-xl mr-3'>{question.question}:</h1>
         <input
-          className='text-xl'
+          ref={inputRef}
+          className='text-xl pl-1'
           type='text'
           value={answer}
           onChange={(event) => {
@@ -73,7 +98,7 @@ export default function QuestionTask({
             type='button'
             tabIndex={-1}
             onClick={() => onAnswerChange(question.answers[0])}
-            value='Give up'
+            value='Show answer'
           />
         ) : (
           <></>

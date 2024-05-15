@@ -30,7 +30,7 @@ function combinedToPossibleQuestions(
   const questions: PossibleQuestion[] = [
     {
       attribute: 'name',
-      question: 'Name',
+      question: 'Country',
       answers: getSetValues(
         combined.country.englishShortName,
         combined.country.englishLongName,
@@ -130,7 +130,7 @@ export default async function CompleterPage({
         {formatRegion(params.region)}
       </h1>
       <div className='flex flex-col justify-center items-center'>
-        <div className='m-10 max-w-lg'>
+        <div className='m-10 max-w-xl'>
           <CompleteGuesser questions={completeQuestions} />
         </div>
       </div>

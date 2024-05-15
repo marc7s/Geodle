@@ -10,18 +10,23 @@ interface Props {
   completeQuestion: CompleteQuestion;
   title: string;
   onTaskComplete?: () => void;
-  taskStarted?: () => void;
+  onTaskStarted?: () => void;
 }
 
 export default function CompleteTask({
   completeQuestion,
   title,
   onTaskComplete: onAllComplete,
-  taskStarted,
+  onTaskStarted,
 }: Props) {
   const [taskQuestions, setTaskQuestions] = useState<Question[]>(
     completeQuestion.completeQuestions
   );
+
+  // Check if all points have been correctly guessed
+  useEffect(() => {
+    setTaskQuestions(completeQuestion.completeQuestions);
+  }, [completeQuestion]);
 
   // Check if all points have been correctly guessed
   useEffect(() => {
@@ -32,21 +37,16 @@ export default function CompleteTask({
       taskQuestions.every((q) => q.correct)
     )
       onAllComplete();
-  }, [taskQuestions, onAllComplete, completeQuestion.complete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskQuestions]);
 
   function onQuestionStarted() {
-    if (taskStarted) taskStarted();
+    if (onTaskStarted) onTaskStarted();
   }
 
   function onCorrectAnswer(question: Question) {
     setTaskQuestions(
       taskQuestions.map((q) => (q === question ? { ...q, correct: true } : q))
-    );
-  }
-
-  function onIncorrectAnswer(question: Question) {
-    setTaskQuestions(
-      taskQuestions.map((q) => (q === question ? { ...q, correct: false } : q))
     );
   }
 
@@ -76,7 +76,7 @@ export default function CompleteTask({
       ))}
 
       {taskQuestions.map((q, i) => (
-        <div className='my-2' key={i}>
+        <div className='my-1' key={i}>
           {q.imageUrl ? (
             <div>Cannot guess images yet</div>
           ) : (
@@ -84,7 +84,9 @@ export default function CompleteTask({
               question={q}
               onQuestionStarted={onQuestionStarted}
               onCorrectAnswer={onCorrectAnswer}
-              onIncorrectAnswer={onIncorrectAnswer}
+              focused={
+                q.question === taskQuestions.find((q) => !q.correct)?.question
+              }
             />
           )}
         </div>
