@@ -23,7 +23,7 @@ export default function CompleteTask({
     completeQuestion.completeQuestions
   );
 
-  // Check if all points have been correctly guessed
+  // Check if all questions have been correctly guessed
   useEffect(() => {
     setTaskQuestions(completeQuestion.completeQuestions);
   }, [completeQuestion]);

@@ -1,4 +1,7 @@
 import CompletedDialog, { DialogAction } from '@/components/ui/CompletedDialog';
+import GameBuilderDialog from '@/components/ui/GameBuilderDialog';
+import { Game } from '@/types/games';
+import { GameParams } from '@/types/routing/dynamicParams';
 import React, { createContext, useContext, useState } from 'react';
 
 interface FinishedGameStatusBase {
@@ -30,23 +33,31 @@ interface GameStatus {
   finishedStatus?: FinishedGameStatus;
 }
 
+interface GameWithParams {
+  game: Game;
+  params: GameParams;
+}
+
 export interface GameContext {
+  init: (gameWithParams: GameWithParams) => void;
   start: () => void;
   finish: (finishStatus: FinishedGameStatus) => void;
   gameStatus: GameStatus;
+  gameWithParams?: GameWithParams;
 }
 
 const defaultGameUI: GameContext = {
+  init: () => {},
   start: () => {},
   finish: () => {},
   gameStatus: {},
 };
 
 export function useGameContext() {
-  return useContext(GameContext);
+  return useContext(DefaultGameContext);
 }
 
-const GameContext = createContext<GameContext>(defaultGameUI);
+const DefaultGameContext = createContext<GameContext>(defaultGameUI);
 
 export default function GameWrapper({
   children,
@@ -56,6 +67,15 @@ export default function GameWrapper({
   const [status, setStatus] = useState<GameStatus>({
     finishedStatus: undefined,
   });
+
+  const [gameWithParams, setGameWithParams] = useState<GameWithParams>();
+
+  function initGame(contextGameWithParams: GameWithParams) {
+    if (gameWithParams?.game.linkName === contextGameWithParams.game.linkName)
+      return;
+
+    setGameWithParams(contextGameWithParams);
+  }
 
   function startGame() {
     setStatus({ ...status, timeStarted: new Date().getTime() });
@@ -86,15 +106,25 @@ export default function GameWrapper({
 
   return (
     <>
-      <GameContext.Provider
+      <DefaultGameContext.Provider
         value={{
+          init: initGame,
           start: startGame,
           finish: finishGame,
           gameStatus: status,
+          gameWithParams: gameWithParams,
         }}
       >
+        <div className='absolute top-2 right-2'>
+          {gameWithParams && (
+            <GameBuilderDialog
+              fixedGame={gameWithParams.game}
+              gameParams={gameWithParams.params}
+            />
+          )}
+        </div>
         {children}
-      </GameContext.Provider>
+      </DefaultGameContext.Provider>
       <CompletedDialog
         actions={completedActions}
         finishedStatus={status.finishedStatus}

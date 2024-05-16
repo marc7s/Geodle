@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { useGameContext } from '@/context/Game';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { Button } from '@/components/ui/button';
+import { GameParams } from '@/types/routing/dynamicParams';
+import { CompleterGame } from '@/types/games';
 
 export interface CompleteQuestion {
   knownQuestions: Question[];
@@ -15,10 +17,15 @@ export interface CompleteQuestion {
 
 interface Props {
   questions: CompleteQuestion[];
+  gameConfig: GameParams;
 }
 
-export default function CompleteGuesser({ questions }: Props) {
+export default function CompleteGuesser({ questions, gameConfig }: Props) {
   const gameContext = useGameContext();
+  useEffect(() => {
+    gameContext.init({ game: CompleterGame, params: gameConfig });
+  }, [gameContext, gameConfig]);
+
   const [questionsLeft, setQuestionsLeft] =
     useState<CompleteQuestion[]>(questions);
 

@@ -52,6 +52,7 @@ export default async function GeodlePage({ params }: GameParams) {
         correct={correctCountry.englishShortName}
         allowedGuessCount={getAllowedGuesses()}
         allowedGuesses={countries.map((c) => c.englishShortName)}
+        gameConfig={{ params: params }}
       ></Geodle>
     </>
   );

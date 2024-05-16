@@ -11,6 +11,8 @@ import { isMobile } from 'react-device-detect';
 import { Progress } from '@/components/ui/progress';
 import GiveUpDialog from './ui/GiveUpDialog';
 import { GameContext, useGameContext } from '@/context/Game';
+import { CityGuesserGame } from '@/types/games';
+import { GameParams } from '@/types/routing/dynamicParams';
 
 export interface PointInfo {
   position: Point;
@@ -28,11 +30,15 @@ interface Props {
   points: PointInfo[];
   config: MapConfig;
   style: MapStyle;
+  gameConfig: GameParams;
   markerWidth?: number;
 }
 
 export default function MapPointGuesser(props: Props) {
   const gameContext: GameContext = useGameContext();
+  useEffect(() => {
+    gameContext.init({ game: CityGuesserGame, params: props.gameConfig });
+  }, [gameContext, props.gameConfig]);
 
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();

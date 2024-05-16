@@ -108,6 +108,7 @@ export default async function TrailGuesserPage({ params }: GameParams) {
         allowedGuesses={getAllowedGuesses()}
         dropdownFeatures={dropdownFeatures}
         correctFeature={correctFeature}
+        gameConfig={config}
       ></TrailGuesser>
     </>
   );

@@ -61,10 +61,13 @@ export function isCorrect(
 
 // Returns a powerset, i.e. all possible combinations of the elements in the provided array
 // However, the result is not a 2D-array, but instead an map with the keys as the parameters for that combination, and the value as the
-// &-joined parameter used in the links
-// As an example, `getAllParamCombinations(['1', '2'])` would return (as a map):
+// separator-joined parameter used in the links
+// As an example, `getAllParamCombinations(['1', '2'], '&')` would return (as a map):
 // [['1'] => '1', ['1', '2'] => '1&2', ['2'] => '2']
-export function getAllParamCombinations<T>(arr: T[]): Map<T[], string> {
+export function getAllParamCombinations<T>(
+  arr: T[],
+  separator: string
+): Map<T[], string> {
   arr = arr.sort();
   const set: Map<T[], string> = new Map();
   const listSize = arr.length;
@@ -75,7 +78,7 @@ export function getAllParamCombinations<T>(arr: T[]): Map<T[], string> {
     for (let j = 0; j < listSize; j++) {
       if (i & (1 << j)) combination.push(arr[j]);
     }
-    set.set(combination, combination.join('&'));
+    set.set(combination, combination.join(separator));
   }
   return set;
 }

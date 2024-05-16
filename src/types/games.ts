@@ -47,6 +47,16 @@ class CompleterGameClass extends Game {
   readonly knownAttributeCombinations: Map<Attribute[], string>;
   readonly guessAttributeCombinations: Map<Attribute[], string>;
 
+  private separator: string = '&';
+
+  encodeAttributes(attributes: string[]): string {
+    return attributes.join(this.separator);
+  }
+
+  decodeAttributes(attributes: string): string[] {
+    return decodeURIComponent(attributes).split(this.separator);
+  }
+
   // We need more information to be able to generate the href, so we override the base method and make it throw an error if used
   getHref(_: GameParams): string {
     throw new Error('Do not call this, call getCompleterHref() instead');
@@ -57,7 +67,7 @@ class CompleterGameClass extends Game {
     knownAttributes: Attribute[],
     guessAttributes: Attribute[]
   ): string {
-    return `${super.getHref(gameParams)}/${knownAttributes.sort().join('&')}/${guessAttributes.sort().join('&')}`;
+    return `${super.getHref(gameParams)}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
   }
 
   constructor(
@@ -70,10 +80,12 @@ class CompleterGameClass extends Game {
     this.allowedGuessAttributes = allowedGuessAttributes;
 
     this.knownAttributeCombinations = getAllParamCombinations(
-      allowedKnownAttributes.map((a) => a)
+      allowedKnownAttributes.map((a) => a),
+      this.separator
     );
     this.guessAttributeCombinations = getAllParamCombinations(
-      allowedGuessAttributes.map((a) => a)
+      allowedGuessAttributes.map((a) => a),
+      this.separator
     );
   }
 }

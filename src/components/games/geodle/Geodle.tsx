@@ -5,6 +5,8 @@ import { Board } from './Board';
 import { Keyboard } from './Keyboard';
 import { toast } from 'sonner';
 import { useGameContext } from '@/context/Game';
+import { GameParams } from '@/types/routing/dynamicParams';
+import { GeodleGame } from '@/types/games';
 
 interface CursorPosition {
   x: number;
@@ -29,14 +31,21 @@ interface Props {
   correct: string;
   allowedGuessCount: number;
   allowedGuesses: string[];
+  gameConfig: GameParams;
 }
 export default function Geodle({
   title,
   correct,
   allowedGuessCount,
   allowedGuesses,
+  gameConfig,
 }: Props) {
   const gameContext = useGameContext();
+  // Initialize the game
+  useEffect(() => {
+    gameContext.init({ game: GeodleGame, params: gameConfig });
+  }, [gameContext, gameConfig]);
+
   const correctNoSpaces: string = correct.replaceAll(' ', '');
   const ROW_COUNT = allowedGuessCount;
   const COLUMN_COUNT = correctNoSpaces.length;

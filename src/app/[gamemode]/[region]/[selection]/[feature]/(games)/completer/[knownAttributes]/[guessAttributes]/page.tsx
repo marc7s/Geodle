@@ -73,12 +73,12 @@ export default async function CompleterPage({
 }: {
   params: CompleteGameParams;
 }) {
-  const knownAttributes: string[] = decodeURIComponent(
+  const knownAttributes: string[] = CompleterGame.decodeAttributes(
     params.knownAttributes
-  ).split('&');
-  const guessAttributes: string[] = decodeURIComponent(
+  );
+  const guessAttributes: string[] = CompleterGame.decodeAttributes(
     params.guessAttributes
-  ).split('&');
+  );
 
   for (const guessAttribute of guessAttributes) {
     if (knownAttributes.includes(guessAttribute))
@@ -101,8 +101,8 @@ export default async function CompleterPage({
     },
     combined,
     {
-      knownAttributes: knownAttributes.join('&'),
-      guessAttributes: guessAttributes.join('&'),
+      knownAttributes: CompleterGame.encodeAttributes(knownAttributes),
+      guessAttributes: CompleterGame.encodeAttributes(guessAttributes),
     }
   );
 
@@ -131,7 +131,10 @@ export default async function CompleterPage({
       </h1>
       <div className='flex flex-col justify-center items-center'>
         <div className='m-10 max-w-xl'>
-          <CompleteGuesser questions={completeQuestions} />
+          <CompleteGuesser
+            questions={completeQuestions}
+            gameConfig={{ params: params }}
+          />
         </div>
       </div>
     </>
