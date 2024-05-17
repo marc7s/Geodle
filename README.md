@@ -13,19 +13,19 @@ Code partly reworked from [Weirdle](https://github.com/alanrsoares/weirdle/tree/
 
 The solution is unknown, but by guessing you will gain information about each letter. Green indicates that the letter is correct, and in the right position. Yellow means that the letter is included in the solution, but at a different position. Gray means that the letter is not part of the solution.
 
-## City Guess
+## Point Guesser
 
 A game inspired by quizzes [like this one](https://www.sporcle.com/games/g/europecapitals).
 
 You are presented with one or more points on the map, and your task is to guess them all - in any order.
 
-## Trail Guess
+## Trail Guesser
 
 A game inspired by [Worldle](https://worldle.teuteuf.fr/).
 
 The solution is unknown, but with each guess the game will tell you how far away your guess was compared with the solution, and in which direction.
 
-## Complete
+## Completer
 
 A quizzing game where you need to fill in the blanks.
 

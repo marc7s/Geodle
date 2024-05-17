@@ -90,11 +90,11 @@ class CompleterGameClass extends Game {
   }
 }
 
-export const CityGuesserGame: Game = new Game({
-  displayName: 'City Guesser',
-  linkName: 'city-guesser',
-  description: 'Guess the cities marked in the map',
-  allowedFeatures: ['capitals'],
+export const PointGuesserGame: Game = new Game({
+  displayName: 'Point Guesser',
+  linkName: 'point-guesser',
+  description: 'Guess the points marked in the map',
+  allowedFeatures: features,
 });
 
 export const CompleterGame: CompleterGameClass = new CompleterGameClass(
@@ -123,7 +123,7 @@ export const TrailGuesserGame: Game = new Game({
 });
 
 export const games: Game[] = [
-  CityGuesserGame,
+  PointGuesserGame,
   CompleterGame,
   GeodleGame,
   TrailGuesserGame,

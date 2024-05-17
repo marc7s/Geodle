@@ -11,8 +11,12 @@ import { isMobile } from 'react-device-detect';
 import { Progress } from '@/components/ui/progress';
 import GiveUpDialog from './ui/GiveUpDialog';
 import { GameContext, useGameContext } from '@/context/Game';
-import { CityGuesserGame } from '@/types/games';
-import { GameParams } from '@/types/routing/dynamicParams';
+import { PointGuesserGame } from '@/types/games';
+import {
+  Feature,
+  GameParams,
+  formatSingularFeature,
+} from '@/types/routing/dynamicParams';
 
 export interface PointInfo {
   position: Point;
@@ -37,7 +41,7 @@ interface Props {
 export default function MapPointGuesser(props: Props) {
   const gameContext: GameContext = useGameContext();
   useEffect(() => {
-    gameContext.init({ game: CityGuesserGame, params: props.gameConfig });
+    gameContext.init({ game: PointGuesserGame, params: props.gameConfig });
   }, [gameContext, props.gameConfig]);
 
   const [marked, setMarked] = useState<PointInfo[]>([]);
@@ -61,7 +65,7 @@ export default function MapPointGuesser(props: Props) {
   }, [points]);
 
   const question: Question = {
-    question: 'Enter the name of a capital',
+    question: `Enter the name of a marked ${formatSingularFeature(props.gameConfig.params.feature)}`,
     answers: props.points
       .map((p) => p.answers)
       .reduce(

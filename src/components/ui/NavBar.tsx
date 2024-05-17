@@ -14,7 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import {
   Game,
-  CityGuesserGame,
+  PointGuesserGame,
   CompleterGame,
   GeodleGame,
   TrailGuesserGame,
@@ -27,12 +27,12 @@ import React from 'react';
 const minigames: {
   game: Game;
   hrefGenerator: (_: GameParams) => string;
-  feature?: Feature;
+  preferredFeature?: Feature;
 }[] = [
   {
-    game: CityGuesserGame,
-    hrefGenerator: (gp: GameParams) => CityGuesserGame.getHref(gp),
-    feature: 'capitals',
+    game: PointGuesserGame,
+    hrefGenerator: (gp: GameParams) => PointGuesserGame.getHref(gp),
+    preferredFeature: 'capitals',
   },
   {
     game: CompleterGame,
@@ -100,7 +100,7 @@ export default function NavBar() {
                       gamemode: 'daily',
                       region: 'World',
                       selection: 'curated',
-                      feature: minigame.feature ?? 'countries',
+                      feature: minigame.preferredFeature ?? 'countries',
                     },
                   })}
                 >
@@ -123,7 +123,7 @@ export default function NavBar() {
                       gamemode: 'training',
                       region: 'World',
                       selection: 'curated',
-                      feature: minigame.feature ?? 'countries',
+                      feature: minigame.preferredFeature ?? 'countries',
                     },
                   })}
                 >
