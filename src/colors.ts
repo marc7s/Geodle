@@ -11,7 +11,13 @@ export class Color {
   }
 }
 
-export const Colors: { NotGuessed: Color; Correct: Color; Incorrect: Color } = {
+export const Colors: {
+  Focused: Color;
+  NotGuessed: Color;
+  Correct: Color;
+  Incorrect: Color;
+} = {
+  Focused: new Color([60, 60, 220]),
   NotGuessed: new Color([120, 120, 170], 0.5),
   Correct: new Color([50, 200, 50]),
   Incorrect: new Color([255, 50, 50]),

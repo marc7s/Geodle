@@ -13,10 +13,10 @@ import GiveUpDialog from './ui/GiveUpDialog';
 import { GameContext, useGameContext } from '@/context/Game';
 import { PointGuesserGame } from '@/types/games';
 import {
-  Feature,
   GameParams,
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
+import { Button } from './ui/button';
 
 export interface PointInfo {
   position: Point;
@@ -47,6 +47,8 @@ export default function MapPointGuesser(props: Props) {
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();
   const [points, setPoints] = useState<PointInfo[]>(props.points);
+  const [center, setCenter] = useState<[number, number]>();
+  const [zoom, setZoom] = useState<number>();
 
   function finish(gaveUp: boolean) {
     gameContext.finish({
@@ -122,18 +124,32 @@ export default function MapPointGuesser(props: Props) {
     setMarked([]);
   }
 
+  function centerOnUncompleted() {
+    const notGuessed = points.find((p) => !p.complete);
+    if (!notGuessed) return;
+    setCenter(notGuessed.position);
+    setZoom(5);
+    setMarked([notGuessed]);
+  }
+
   return (
     <div className='flex-col items-center justify-center'>
       <div>
         <Map
-          height={800}
-          width={800}
+          height={900}
+          width={900}
           defaultCenter={props.config.position}
           defaultZoom={props.config.zoom}
+          center={center}
           minZoom={1}
-          maxZoom={4}
+          maxZoom={5}
+          zoom={zoom}
           onClick={unmarkAll}
           provider={stadiamaps(props.style)}
+          onBoundsChanged={({ center, zoom }) => {
+            setCenter(center);
+            setZoom(zoom);
+          }}
         >
           {points.map((pi, i) => (
             <Overlay key={i} anchor={pi.position}>
@@ -143,9 +159,11 @@ export default function MapPointGuesser(props: Props) {
                   className={styles.marker}
                   key={i}
                   width={props.markerWidth}
-                  color={(pi.complete
-                    ? Colors.Correct
-                    : Colors.NotGuessed
+                  color={(marked.includes(pi)
+                    ? Colors.Focused
+                    : pi.complete
+                      ? Colors.Correct
+                      : Colors.NotGuessed
                   ).toString()}
                   onMouseOver={() => {
                     // Disable on mobile, as it conflicts with the click event
@@ -173,7 +191,7 @@ export default function MapPointGuesser(props: Props) {
         </div>
       </div>
 
-      <div>
+      <div className='flex flex-row justify-center items-center space-x-2'>
         <QuestionTask
           question={question}
           allowGivingUp={false}
@@ -182,9 +200,10 @@ export default function MapPointGuesser(props: Props) {
           onCorrectAnswer={handleCorrectGuess}
           onIncorrectAnswer={() => {}}
         ></QuestionTask>
-        <div className='flex flex-row justify-end'>
-          <GiveUpDialog onGiveUp={() => finish(true)}></GiveUpDialog>
-        </div>
+        <Button variant='secondary' onClick={centerOnUncompleted}>
+          Locate
+        </Button>
+        <GiveUpDialog onGiveUp={() => finish(true)} />
       </div>
     </div>
   );
