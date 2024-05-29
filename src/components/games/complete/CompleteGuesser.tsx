@@ -84,7 +84,7 @@ export default function CompleteGuesser({ questions, gameConfig }: Props) {
           <Button onClick={skipQuestion} className='mb-10' variant={'outline'}>
             Skip
           </Button>
-          <GiveUpDialog onGiveUp={() => finish(true)}></GiveUpDialog>
+          <GiveUpDialog onGiveUp={() => finish(true)} />
         </div>
       </div>
     </>

@@ -7,6 +7,10 @@ export type MapStyle =
   | 'Terrain'
   | 'HideAll';
 
+// A custom offline map provider used in empty maps
+export const emptymap = (x: number, y: number, z: number, dpr = 1): string =>
+  '';
+
 export const stadiamaps =
   (mapStyle: MapStyle = 'Default') =>
   (x: number, y: number, z: number, dpr = 1): string => {

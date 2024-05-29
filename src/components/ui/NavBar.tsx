@@ -18,6 +18,7 @@ import {
   CompleterGame,
   GeodleGame,
   TrailGuesserGame,
+  PuzzleGuesserGame,
 } from '@/types/games';
 import { Feature, GameParams } from '@/types/routing/dynamicParams';
 
@@ -46,6 +47,10 @@ const minigames: {
   {
     game: TrailGuesserGame,
     hrefGenerator: (gp: GameParams) => TrailGuesserGame.getHref(gp),
+  },
+  {
+    game: PuzzleGuesserGame,
+    hrefGenerator: (gp: GameParams) => PuzzleGuesserGame.getHref(gp),
   },
 ];
 

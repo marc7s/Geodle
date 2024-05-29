@@ -58,6 +58,7 @@ The comments in the datasets are purely for explanation and for me to remember m
 1. Install the `Prettier` VS Code extension
 2. Setup a Microsoft SQL Server instance with an admin user, as Prisma needs to modify the database during deployment
 3. Create a `.env.dev` and `.env.prod` environment file and fill them in according to the example files
+4. Install Mapshaper globally with `npm i -g mapshaper`
 
 ## Prisma
 
@@ -69,10 +70,14 @@ Prisma is used as it allows easily creating the data structures through a schema
 
 1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
 2. Run `npm run deploy-dev` if you need to deploy the database
-3. Build the application with the `DevDockerfile`
+3. Run `npm run generate-dev` if you need to regenerate the types
+4. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
+5. Build the application with the `DevDockerfile`
 
 ### Prod
 
 1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
 2. Run `npm run deploy-prod` if you need to deploy the database
-3. Build the application with the `ProdDockerfile`
+3. Run `npm run generate-prod` if you need to regenerate the types
+4. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
+5. Build the application with the `ProdDockerfile`

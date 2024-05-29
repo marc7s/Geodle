@@ -122,9 +122,17 @@ export const TrailGuesserGame: Game = new Game({
   allowedFeatures: features,
 });
 
+export const PuzzleGuesserGame: Game = new Game({
+  displayName: 'Puzzle Guesser',
+  linkName: 'puzzle',
+  description: 'Guess all missing puzzle pieces',
+  allowedFeatures: features,
+});
+
 export const games: Game[] = [
   PointGuesserGame,
   CompleterGame,
   GeodleGame,
   TrailGuesserGame,
+  PuzzleGuesserGame,
 ];

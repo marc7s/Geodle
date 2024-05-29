@@ -6,6 +6,9 @@
 # generated types
 /src/types/routing/generated/*
 
+# generated data
+/src/data/generated/*
+
 # dependencies
 /node_modules
 /.pnp

@@ -186,7 +186,7 @@ export default function TrailGuesser({
           onQuestionStarted={() => {}}
           onCorrectAnswer={handleCorrectGuess}
           onIncorrectAnswer={handleIncorrectGuess}
-        ></SelectQuestionTask>
+        />
       </div>
     </div>
   );

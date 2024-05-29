@@ -13,7 +13,8 @@
     "deploy-prod": "dotenv -e .env.prod -- npx prisma db push --force-reset && dotenv -e .env.prod -- npm run generate-value-types && dotenv -e .env.prod -- npx prisma db seed",
     "generate-dev": "dotenv -e .env.dev -- npx prisma generate && dotenv -e .env.dev -- npm run generate-value-types",
     "generate-prod": "dotenv -e .env.prod -- npm run generate-value-types",
-    "generate-value-types": "tsx prisma/generators/*.ts"
+    "generate-value-types": "tsx prisma/generators/*.ts",
+    "generate-geojson": "tsx generateGeoJson.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -60,6 +61,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.2",
     "eslint-config-prettier": "^9.1.0",
+    "geojson-places": "^1.0.8",
     "postcss": "^8",
     "prettier": "^3.2.5",
     "prisma": "^5.12.1",

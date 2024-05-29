@@ -1,5 +1,12 @@
+// Disable SSR for maps, as it will throw errors due to being out of sync otherwise
+// See https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading#with-no-ssr
+import dynamic from 'next/dynamic';
+const MapPointGuesser = dynamic(() => import('@/components/MapPointGuesser'), {
+  ssr: false,
+});
+
 import { getCapitals, getCountries } from '@/api';
-import MapPointGuesser, { PointInfo } from '@/components/MapPointGuesser';
+import { PointInfo } from '@/components/MapPointGuesser';
 import {
   MapDefaultConfigs,
   generateStaticFeatureParams,

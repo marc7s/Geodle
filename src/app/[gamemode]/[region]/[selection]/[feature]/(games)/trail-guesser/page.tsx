@@ -109,7 +109,7 @@ export default async function TrailGuesserPage({ params }: GameParams) {
         dropdownFeatures={dropdownFeatures}
         correctFeature={correctFeature}
         gameConfig={config}
-      ></TrailGuesser>
+      />
     </>
   );
 }
