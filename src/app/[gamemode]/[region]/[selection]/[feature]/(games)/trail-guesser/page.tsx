@@ -11,9 +11,8 @@ import TrailGuesser, {
 } from '@/components/games/trailGuesser/TrailGuesser';
 import { TrailGuesserGame } from '@/types/games';
 
-// TrailGuesser supports countries and capitals
 export async function generateStaticParams() {
-  return generateStaticFeatureParams('countries', 'capitals');
+  return generateStaticFeatureParams(...TrailGuesserGame.allowedFeatures);
 }
 
 function countryToTrailEntity(country: Country): TrailFeature {

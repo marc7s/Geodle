@@ -84,6 +84,8 @@ export default function TrailGuesser({
     gameContext.finish({
       singleWithTries: true,
 
+      correctAnswer: correctFeature.selectValue,
+      succeeded: true,
       gaveUp: false,
       availableTries: allowedGuesses,
       numberOfTries: guesses.length,

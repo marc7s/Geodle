@@ -1,8 +1,8 @@
+import { CompleterGame } from '@/types/games';
 import { generateStaticFeatureParams } from '@/utils';
 
-// CompleteGame supports capitals and countries
 export async function generateStaticParams() {
-  return generateStaticFeatureParams('capitals', 'countries');
+  return generateStaticFeatureParams(...CompleterGame.allowedFeatures);
 }
 
 export default function Layout({

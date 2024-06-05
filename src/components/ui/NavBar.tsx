@@ -19,6 +19,7 @@ import {
   GeodleGame,
   TrailGuesserGame,
   PuzzleGuesserGame,
+  OutlinerGame,
 } from '@/types/games';
 import { Feature, GameParams } from '@/types/routing/dynamicParams';
 
@@ -29,6 +30,7 @@ const minigames: {
   game: Game;
   hrefGenerator: (_: GameParams) => string;
   preferredFeature?: Feature;
+  noDaily?: boolean;
 }[] = [
   {
     game: PointGuesserGame,
@@ -51,6 +53,11 @@ const minigames: {
   {
     game: PuzzleGuesserGame,
     hrefGenerator: (gp: GameParams) => PuzzleGuesserGame.getHref(gp),
+    noDaily: true,
+  },
+  {
+    game: OutlinerGame,
+    hrefGenerator: (gp: GameParams) => OutlinerGame.getHref(gp),
   },
 ];
 
@@ -96,22 +103,24 @@ export default function NavBar() {
                   </>
                 </NavigationMenuLink>
               </li>
-              {minigames.map((minigame) => (
-                <ListItem
-                  key={minigame.game.displayName}
-                  title={minigame.game.displayName}
-                  href={minigame.hrefGenerator({
-                    params: {
-                      gamemode: 'daily',
-                      region: 'World',
-                      selection: 'curated',
-                      feature: minigame.preferredFeature ?? 'countries',
-                    },
-                  })}
-                >
-                  {minigame.game.description}
-                </ListItem>
-              ))}
+              {minigames
+                .filter((m) => m.noDaily !== true)
+                .map((minigame) => (
+                  <ListItem
+                    key={minigame.game.displayName}
+                    title={minigame.game.displayName}
+                    href={minigame.hrefGenerator({
+                      params: {
+                        gamemode: 'daily',
+                        region: 'World',
+                        selection: 'curated',
+                        feature: minigame.preferredFeature ?? 'countries',
+                      },
+                    })}
+                  >
+                    {minigame.game.description}
+                  </ListItem>
+                ))}
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>

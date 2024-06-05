@@ -63,7 +63,7 @@ function combinedToPossibleQuestions(
 function possibleToQuestion(possibleQuestion: PossibleQuestion): Question {
   return {
     question: possibleQuestion.question,
-    answers: possibleQuestion.answers,
+    correctAnswers: possibleQuestion.answers,
     imageUrl: possibleQuestion.imageUrl,
   };
 }

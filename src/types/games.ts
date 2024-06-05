@@ -129,10 +129,18 @@ export const PuzzleGuesserGame: Game = new Game({
   allowedFeatures: features,
 });
 
+export const OutlinerGame: Game = new Game({
+  displayName: 'Outliner',
+  linkName: 'outliner',
+  description: 'Guess the answer based on its outline',
+  allowedFeatures: ['countries'],
+});
+
 export const games: Game[] = [
   PointGuesserGame,
   CompleterGame,
   GeodleGame,
   TrailGuesserGame,
   PuzzleGuesserGame,
+  OutlinerGame,
 ];

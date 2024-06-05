@@ -18,31 +18,33 @@ import { PuzzleGuesserGame } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { MapConfig } from '@/utils';
-import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
+import { GeoOutlineData } from '@/geoUtils';
 
 interface Props {
   title: string;
   feature: Feature;
-  puzzlePieces: GeoOutlineData[];
-  backgroundData: GeoJsonData[];
+  allowedGuesses: number;
+  answer: GeoOutlineData;
+  possibleAnswers: string[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
 }
 
-export default function PuzzleGuesser({
+export default function Outliner({
   title,
   feature,
-  puzzlePieces,
-  backgroundData,
+  allowedGuesses,
+  answer,
+  possibleAnswers,
   gameConfig,
   mapConfig,
 }: Props) {
   const singularFeature: string = formatSingularFeature(feature);
-  const [pieces, setPieces] = useState<GeoOutlineData[]>(puzzlePieces);
+  const [guesses, setGuesses] = useState<string[]>([]);
 
   const question: Question = {
-    question: `Guess the name of any missing ${singularFeature}`,
-    correctAnswers: pieces.map((p) => p.name),
+    question: `Guess the ${singularFeature} based on its outline`,
+    correctAnswers: answer.answers,
   };
 
   const gameContext: GameContext = useGameContext();
@@ -56,27 +58,37 @@ export default function PuzzleGuesser({
   }
 
   function handleCorrectGuess(_: Question, answer: string) {
-    setPieces(
-      pieces.map((p) => (p.name === answer ? { ...p, guessed: true } : p))
-    );
+    finish(true, false);
   }
 
-  function finish(gaveUp: boolean) {
-    gameContext.finish({
-      guessThemAll: true,
+  function handleIncorrectGuess(
+    _: Question,
+    correctAnswer: string | undefined
+  ) {
+    if (correctAnswer === undefined) return;
+    setGuesses([...guesses, correctAnswer]);
+  }
 
-      succeeded: true,
+  // Check whether the user has run out of guesses
+  useEffect(() => {
+    if (guesses.length < allowedGuesses) return;
+    finish(false, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guesses]);
+
+  function finish(succeded: boolean, gaveUp: boolean) {
+    // If we got it correct, we need to add that guess as a try
+    const tries = guesses.length + (succeded ? 1 : 0);
+    gameContext.finish({
+      singleWithTries: true,
+
+      correctAnswer: answer.answers[0],
+      succeeded: !gaveUp && succeded,
       gaveUp: gaveUp,
-      totalQuestions: pieces.length,
-      missedAnswers: pieces.filter((p) => !p.guessed).map((p) => p.name),
+      availableTries: allowedGuesses,
+      numberOfTries: tries,
     });
   }
-
-  // Check whether all pieces have been guessed
-  useEffect(() => {
-    if (pieces.every((p) => p.guessed)) finish(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pieces]);
 
   return (
     <div className='flex flex-col justify-center items-center'>
@@ -85,20 +97,23 @@ export default function PuzzleGuesser({
         config={mapConfig}
         height={800}
         width={800}
-        isStatic={false}
-        dataList={pieces.filter((p) => p.guessed).map((p) => p.outline)}
-        backgroundDataList={backgroundData}
+        isStatic={true}
+        dataList={[answer.outline]}
+        backgroundDataList={[]}
+        highlightOnHover={false}
       />
       <QuestionTask
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}
+        onIncorrectAnswer={handleIncorrectGuess}
+        possibleAnswers={possibleAnswers}
         allowGivingUp={false}
         isReusable={true}
       />
-      <div className='mb-4'>{pieces.filter((p) => !p.guessed).length} left</div>
+      <div className='mb-4'>{allowedGuesses - guesses.length} guesses left</div>
       {gameContext.gameStatus.timeStarted && (
-        <GiveUpDialog onGiveUp={() => finish(true)} />
+        <GiveUpDialog onGiveUp={() => finish(false, true)} />
       )}
     </div>
   );

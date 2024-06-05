@@ -2,30 +2,44 @@
 
 import { GeoJson, Map } from 'pigeon-maps';
 import { emptymap } from '@/mapProviders';
-import { GeoJsonData } from '@/app/[gamemode]/[region]/[selection]/[feature]/(games)/puzzle/page';
 import { MapConfig } from '@/utils';
+import { GeoJsonData } from '@/geoUtils';
 
 interface Props {
   config: MapConfig;
   height: number;
   width: number;
+  isStatic: boolean;
   dataList: GeoJsonData[];
   backgroundDataList: GeoJsonData[];
+  highlightOnHover?: boolean;
 }
-export default function GeoJsonMap(props: Props) {
+export default function GeoJsonMap({
+  config,
+  height,
+  width,
+  isStatic,
+  dataList,
+  backgroundDataList,
+  highlightOnHover = true,
+}: Props) {
   return (
     <div className='emptyMap border-2 border-black'>
       <Map
-        height={props.height}
-        width={props.width}
-        defaultCenter={props.config.position}
-        defaultZoom={props.config.zoom ?? 6}
+        height={height}
+        width={width}
+        defaultCenter={config.position}
+        defaultZoom={config.zoom ?? 6}
+        minZoom={config.minZoom}
+        maxZoom={config.maxZoom}
         provider={emptymap}
         attribution={false}
         attributionPrefix={false}
+        touchEvents={!isStatic}
+        mouseEvents={!isStatic}
       >
-        {renderGeoJsonData(props.backgroundDataList, true)}
-        {renderGeoJsonData(props.dataList, false)}
+        {renderGeoJsonData(backgroundDataList, true, false)}
+        {renderGeoJsonData(dataList, false, highlightOnHover)}
       </Map>
     </div>
   );
@@ -33,7 +47,8 @@ export default function GeoJsonMap(props: Props) {
 
 function renderGeoJsonData(
   dataList: GeoJsonData[],
-  background: boolean
+  background: boolean,
+  highlightOnHover: boolean
 ): JSX.Element[] {
   const defaultStyle = {
     strokeWidth: '1',
@@ -41,7 +56,7 @@ function renderGeoJsonData(
   };
 
   const foregroundStyle = (feature: GeoJsonData, hover: boolean) => {
-    return hover
+    return highlightOnHover && hover
       ? {
           ...defaultStyle,
           fill: 'white',

@@ -69,7 +69,7 @@ export default function CompleteTask({
             </div>
           ) : (
             <>
-              {q.question}: {q.answers[0]}
+              {q.question}: {q.correctAnswers[0]}
             </>
           )}
         </div>

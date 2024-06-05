@@ -15,7 +15,7 @@ const useFocus = (): [any, () => void] => {
 
 export interface Question {
   question: string;
-  answers: string[];
+  correctAnswers: string[];
   imageUrl?: string;
   correct?: boolean;
   caseSensitive?: boolean;
@@ -26,6 +26,7 @@ interface Props {
   onQuestionStarted: () => void;
   onCorrectAnswer: (_: Question, correctAnswer: string) => void;
   onIncorrectAnswer?: (_: Question, correctAnswer: string | undefined) => void;
+  possibleAnswers?: string[];
   focused?: boolean;
   isReusable?: boolean;
   allowGivingUp?: boolean;
@@ -33,9 +34,10 @@ interface Props {
 
 export default function QuestionTask({
   question,
+  onQuestionStarted,
   onCorrectAnswer,
   onIncorrectAnswer,
-  onQuestionStarted,
+  possibleAnswers = question.correctAnswers,
   focused = false,
   isReusable = false,
   allowGivingUp = true,
@@ -63,16 +65,21 @@ export default function QuestionTask({
     setAnswer(newAnswer);
     if (!started) onQuestionStarted();
     setStarted(true);
-    const matchingAnswer: string | undefined = question.answers.find((a) =>
-      isCorrect(newAnswer, a, question.caseSensitive)
-    );
+    const matchingCorrectAnswer: string | undefined =
+      question.correctAnswers.find((a) =>
+        isCorrect(newAnswer, a, question.caseSensitive)
+      );
 
-    if (matchingAnswer) {
-      onCorrectAnswer(question, matchingAnswer);
-      setAnswer(isReusable ? '' : matchingAnswer);
+    if (matchingCorrectAnswer) {
+      onCorrectAnswer(question, matchingCorrectAnswer);
+      setAnswer(isReusable ? '' : matchingCorrectAnswer);
       if (!isReusable) setDisabled(true);
     } else if (onIncorrectAnswer) {
-      onIncorrectAnswer(question, matchingAnswer);
+      const matchingIncorrectAnswer: string | undefined = possibleAnswers.find(
+        (a) => isCorrect(newAnswer, a, question.caseSensitive)
+      );
+      if (matchingIncorrectAnswer)
+        onIncorrectAnswer(question, matchingIncorrectAnswer);
     }
   }
 
@@ -97,7 +104,7 @@ export default function QuestionTask({
             className='ml-2 cursor-pointer'
             type='button'
             tabIndex={-1}
-            onClick={() => onAnswerChange(question.answers[0])}
+            onClick={() => onAnswerChange(question.correctAnswers[0])}
             value='Show answer'
           />
         ) : (

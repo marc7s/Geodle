@@ -54,6 +54,7 @@ export default function MapPointGuesser(props: Props) {
     gameContext.finish({
       guessThemAll: true,
 
+      succeeded: true,
       gaveUp: gaveUp,
       totalQuestions: points.length,
       missedAnswers: points.filter((p) => !p.complete).map((p) => p.answers[0]),
@@ -68,7 +69,7 @@ export default function MapPointGuesser(props: Props) {
 
   const question: Question = {
     question: `Enter the name of a marked ${formatSingularFeature(props.gameConfig.params.feature)}`,
-    answers: props.points
+    correctAnswers: props.points
       .map((p) => p.answers)
       .reduce(
         (totAnswers, pointAnswers) => totAnswers.concat(pointAnswers),
@@ -198,8 +199,7 @@ export default function MapPointGuesser(props: Props) {
           isReusable={true}
           onQuestionStarted={gameContext.start}
           onCorrectAnswer={handleCorrectGuess}
-          onIncorrectAnswer={() => {}}
-        ></QuestionTask>
+        />
         <Button variant='secondary' onClick={centerOnUncompleted}>
           Locate
         </Button>

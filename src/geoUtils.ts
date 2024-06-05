@@ -1,3 +1,5 @@
+import { Point } from 'pigeon-maps';
+
 export interface GeoPoint {
   lat: number;
   long: number;
@@ -7,6 +9,16 @@ export interface GeoVector2 {
   origin: GeoPoint;
   distance: number;
   bearingDeg: number;
+}
+
+export type GeoJsonData = object;
+export interface GeoOutlineData {
+  name: string;
+  answers: string[];
+  outline: GeoJsonData;
+  center: Point;
+  zoomLevelToFit: number;
+  guessed?: boolean;
 }
 
 function radToDeg(rad: number): number {

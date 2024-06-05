@@ -17,9 +17,8 @@ import styles from './styles.module.scss';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
 import { PointGuesserGame } from '@/types/games';
 
-// PointGuesser supports countries and capitals
 export async function generateStaticParams() {
-  return generateStaticFeatureParams('countries', 'capitals');
+  return generateStaticFeatureParams(...PointGuesserGame.allowedFeatures);
 }
 
 export default async function PointGuesserPage({ params }: GameParams) {

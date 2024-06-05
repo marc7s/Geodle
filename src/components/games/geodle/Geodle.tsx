@@ -166,8 +166,11 @@ export default function Geodle({
 
       if (guess === correctNoSpaces.toLocaleLowerCase())
         gameContext.finish({
-          gaveUp: false,
           singleWithTries: true,
+
+          correctAnswer: correct,
+          succeeded: true,
+          gaveUp: false,
           availableTries: allowedGuessCount,
           numberOfTries: state.cursor.y + 1,
         });

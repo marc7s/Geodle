@@ -73,7 +73,9 @@ function singleWithTriesContent(
   finishedStatus: FinishedGameStatusSingleWithTries,
   timeElapsedMS: number
 ): JSX.Element {
-  const description: string = 'You got the answer!';
+  const description: string = finishedStatus.succeeded
+    ? 'You got the answer!'
+    : `Better luck next time!\nThe correct answer was: ${finishedStatus.correctAnswer}`;
   return (
     <>
       <AlertDialogDescription className='whitespace-pre-wrap'>
@@ -116,7 +118,8 @@ export default function CompletedDialog(props: Props) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {props.title ?? props.finishedStatus.gaveUp
+              {props.title ??
+              (props.finishedStatus.gaveUp || !props.finishedStatus.succeeded)
                 ? 'Nice try!'
                 : 'All done!'}
             </AlertDialogTitle>

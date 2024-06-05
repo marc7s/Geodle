@@ -9,9 +9,8 @@ import {
 import Geodle from '@/components/games/geodle/Geodle';
 import { GeodleGame } from '@/types/games';
 
-// GeodleGame supports countries and capitals
 export async function generateStaticParams() {
-  return generateStaticFeatureParams('countries', 'capitals');
+  return generateStaticFeatureParams(...GeodleGame.allowedFeatures);
 }
 
 export default async function GeodlePage({ params }: GameParams) {

@@ -49,13 +49,14 @@ export default function CompleteGuesser({ questions, gameConfig }: Props) {
     gameContext.finish({
       guessThemAll: true,
 
+      succeeded: true,
       gaveUp: gaveUp,
       totalQuestions: questions.length,
       missedAnswers: questionsLeft
         .filter((cq) => !cq.complete)
         .map((cq) => cq.completeQuestions.filter((q) => !q.correct))
         .map((qs) =>
-          qs.map((q) => `${q.question}: ${q.answers[0]}`).join(' & ')
+          qs.map((q) => `${q.question}: ${q.correctAnswers[0]}`).join(' & ')
         ),
     });
   }

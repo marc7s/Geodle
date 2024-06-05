@@ -11,6 +11,8 @@ export type DailyGameAdditionalConfig = { [key: string]: string };
 export interface MapConfig {
   position: Point;
   zoom: number;
+  minZoom?: number;
+  maxZoom?: number;
 }
 
 export const MapDefaultConfigs: {

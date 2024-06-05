@@ -75,14 +75,14 @@ function runMapshaper(command: string): Promise<string> {
 // Combines several files into one
 function combine(paths: string[], outputPath: string): Promise<string> {
   return runMapshaper(
-    `-i ${paths.join(' ')} combine-files -merge-layers -o precision=0.001 ${outputPath}`
+    `-i ${paths.join(' ')} combine-files -merge-layers -o precision=0.001 bbox ${outputPath}`
   );
 }
 
 // Copies a file to a new location, using Mapshaper to reformat it correctly
 function copy(path: string, outputPath: string): Promise<string> {
   return runMapshaper(
-    `${path} -o precision=0.001 format=geojson geojson-type=FeatureCollection ${outputPath}`
+    `${path} -o precision=0.001 bbox format=geojson geojson-type=FeatureCollection ${outputPath}`
   );
 }
 
@@ -105,7 +105,6 @@ function beginSection(section: string) {
 }
 
 async function main() {
-  beginSection('Setup');
   beginSection('Combining files');
   // Combines North and South America into a single Americas file
   await combine(

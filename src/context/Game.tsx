@@ -5,6 +5,7 @@ import { GameParams } from '@/types/routing/dynamicParams';
 import React, { createContext, useContext, useState } from 'react';
 
 interface FinishedGameStatusBase {
+  succeeded: boolean;
   gaveUp: boolean;
 }
 
@@ -16,6 +17,7 @@ export interface FinishedGameStatusSingleWithTries
   extends FinishedGameStatusBase {
   singleWithTries: boolean; // Discriminator
 
+  correctAnswer: string;
   availableTries: number;
   numberOfTries: number;
 }
