@@ -31,6 +31,14 @@ A quizzing game where you need to fill in the blanks.
 
 This is the most versitile game, you can use it to train flags, capitals, country names, countries and flags at the same time and so on.
 
+## Outliner
+
+A game where you have to guess the country based on its outline. Also inspired by [Worldle](https://worldle.teuteuf.fr/).
+
+## Puzzle
+
+A game where you have to guess all countries, where each correct guess adds it to the map. Like laying a puzzle where each country is a piece, revealing parts of borders to missing countries as you guess. Inspired by quizzes [like this one](https://www.sporcle.com/games/g/world).
+
 # Data
 
 ## Processing
