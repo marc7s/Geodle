@@ -2,7 +2,7 @@ PROCESSING_DESCRIPTION;Geoname ID;Name;ASCII Name;Alternate Names;Feature Class;
 Set Jerusalem as capital of Israel;281184;;;;;PPLC;;;;;;;;;;;;;;
 Set Ramallah as capital of Palestine;282239;;;;;PPLC;;;;;;;;;;;;;;
 Change default name for capital of Western Sahara and set it as capital;2462881;El Aaiún;;;;PPLC;;;;;;;;;;;;;;
-Change default name for capital of Micronesia;2081986;Palikir;;;;;;;;;;;;;;;;;;
+Change default name for capital of Micronesia;2081986;Palikir;Palikir;;;;;;;;;;;;;;;;;
 Change default name for capital of Guernsey;3042287;St Peter Port;;;;;;;;;;;;;;;;;;
 Change default name for capital of Grenada;3579925;St George's;;;;;;;;;;;;;;;;;;
 Unset Hong Kong as capital of Hong Kong;1819729;;;;;PPL;;;;;;;;;;;;;;
