@@ -103,7 +103,12 @@ export default async function PatherPage({ params }: GameParams) {
             getCountryOutlineData(solution.country1, true),
             getCountryOutlineData(solution.country2, true),
           ]}
-          possiblePieces={pieces}
+          possiblePieces={pieces.filter(
+            (p) =>
+              ![solution.country1.id, solution.country2.id].includes(
+                p.country.id
+              )
+          )}
           bestOutlines={bestPieces}
           backgroundData={backgroundData}
           gameConfig={config}
