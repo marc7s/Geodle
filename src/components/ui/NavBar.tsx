@@ -113,7 +113,7 @@ export default function NavBar() {
                       params: {
                         gamemode: 'daily',
                         region: 'World',
-                        selection: 'curated',
+                        selection: 'independent',
                         feature: minigame.preferredFeature ?? 'countries',
                       },
                     })}
@@ -136,7 +136,7 @@ export default function NavBar() {
                     params: {
                       gamemode: 'training',
                       region: 'World',
-                      selection: 'curated',
+                      selection: 'independent',
                       feature: minigame.preferredFeature ?? 'countries',
                     },
                   })}
