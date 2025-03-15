@@ -39,6 +39,10 @@ A game where you have to guess the country based on its outline. Also inspired b
 
 A game where you have to guess all countries, where each correct guess adds it to the map. Like laying a puzzle where each country is a piece, revealing parts of borders to missing countries as you guess. Inspired by quizzes [like this one](https://www.sporcle.com/games/g/world).
 
+## Pather
+
+A game inspired by [Travle](https://travle.earth/), where you are given a start and end country, and your task is to guess bordering countries that form the shortest path between them, in terms of number of countries.
+
 # Data
 
 ## Processing

@@ -136,6 +136,13 @@ export const OutlinerGame: Game = new Game({
   allowedFeatures: ['countries'],
 });
 
+export const PatherGame: Game = new Game({
+  displayName: 'Pather',
+  linkName: 'pather',
+  description: 'Guess the shortest path between countries',
+  allowedFeatures: ['countries'],
+});
+
 export const games: Game[] = [
   PointGuesserGame,
   CompleterGame,
@@ -143,4 +150,5 @@ export const games: Game[] = [
   TrailGuesserGame,
   PuzzleGuesserGame,
   OutlinerGame,
+  PatherGame,
 ];

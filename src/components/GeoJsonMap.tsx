@@ -5,22 +5,28 @@ import { emptymap } from '@/mapProviders';
 import { MapConfig } from '@/utils';
 import { GeoJsonData } from '@/geoUtils';
 
+type DataListStyle = 'Background' | 'Foreground' | 'Secondary';
+interface GeoJsonDataWithColor extends GeoJsonData {
+  color?: string;
+}
+
 interface Props {
   config: MapConfig;
   height: number;
   width: number;
   isStatic: boolean;
-  dataList: GeoJsonData[];
   backgroundDataList: GeoJsonData[];
+  dataList: GeoJsonDataWithColor[];
   highlightOnHover?: boolean;
 }
+
 export default function GeoJsonMap({
   config,
   height,
   width,
   isStatic,
-  dataList,
   backgroundDataList,
+  dataList,
   highlightOnHover = true,
 }: Props) {
   return (
@@ -38,16 +44,16 @@ export default function GeoJsonMap({
         touchEvents={!isStatic}
         mouseEvents={!isStatic}
       >
-        {renderGeoJsonData(backgroundDataList, true, false)}
-        {renderGeoJsonData(dataList, false, highlightOnHover)}
+        {renderGeoJsonData(backgroundDataList, 'Background', false)}
+        {renderGeoJsonData(dataList, 'Foreground', highlightOnHover)}
       </Map>
     </div>
   );
 }
 
 function renderGeoJsonData(
-  dataList: GeoJsonData[],
-  background: boolean,
+  dataList: GeoJsonDataWithColor[],
+  style: DataListStyle,
   highlightOnHover: boolean
 ): JSX.Element[] {
   const defaultStyle = {
@@ -55,21 +61,33 @@ function renderGeoJsonData(
     r: '10',
   };
 
-  const foregroundStyle = (feature: GeoJsonData, hover: boolean) => {
+  const foregroundFillColor: string =
+    style === 'Foreground' ? '#154354' : 'rgba(20, 150, 20, 0.8)';
+  const foregroundHoverColor: string = 'white';
+
+  const foregroundStyle = (
+    feature: GeoJsonData,
+    hover: boolean,
+    color?: string
+  ) => {
     return highlightOnHover && hover
       ? {
           ...defaultStyle,
-          fill: 'white',
+          fill: foregroundHoverColor,
           stroke: 'black',
         }
       : {
           ...defaultStyle,
-          fill: '#154354',
+          fill: color ?? foregroundFillColor,
           stroke: 'white',
         };
   };
 
-  const backgroundStyle = (feature: GeoJsonData, hover: boolean) => {
+  const backgroundStyle = (
+    feature: GeoJsonData,
+    hover: boolean,
+    color?: string
+  ) => {
     return {
       ...defaultStyle,
       fill: 'rgba(20, 20, 20, 0.1)',
@@ -81,7 +99,11 @@ function renderGeoJsonData(
     <GeoJson
       key={index}
       data={geoData}
-      styleCallback={background ? backgroundStyle : foregroundStyle}
+      styleCallback={(feature: GeoJsonData, hover: boolean) => {
+        return style === 'Background'
+          ? backgroundStyle(feature, hover, geoData.color)
+          : foregroundStyle(feature, hover, geoData.color);
+      }}
     />
   ));
 }

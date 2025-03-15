@@ -30,6 +30,7 @@ model Country {
   englishLongName  String?
   domesticName     String  @unique
   aliases          String  @db.NVarChar(max)
+  bordersISO3      String  @db.NVarChar(max)
 
   lat  Float
   long Float
@@ -60,4 +61,20 @@ model City {
   updatedAt DateTime @updatedAt
 
   @@unique([englishName, lat, long], name: "cityLocation")
+}
+
+model CountryPaths {
+  id Int @id @default(autoincrement())
+
+  selection String
+  region    String
+  path      String
+
+  country1ISO3 String
+  country2ISO3 String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([selection, region, path], name: "uniquePathPerSetting")
 }
