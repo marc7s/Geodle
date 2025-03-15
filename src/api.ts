@@ -1,4 +1,4 @@
-import { City, Country, Region } from '@prisma/client';
+import { City, Country, CountryPaths, Region } from '@prisma/client';
 import prisma from './db';
 import { GameRegion } from './types/routing/generated/regions';
 import { CountrySelection } from './types/routing/dynamicParams';
@@ -8,8 +8,56 @@ export interface CombinedCountry {
   capital: City;
 }
 
+export interface CountryPath {
+  country1: Country;
+  country2: Country;
+  paths: Country[][];
+}
+
 export async function getRegions(): Promise<Region[]> {
   return await prisma.region.findMany();
+}
+
+export async function getCountryPaths(
+  selection: CountrySelection,
+  region: GameRegion
+): Promise<CountryPath[]> {
+  const countryPaths: CountryPaths[] = await prisma.countryPaths.findMany({
+    where: {
+      selection: selection,
+      region: region,
+    },
+  });
+  const countryCache: Map<string, Country> = new Map();
+
+  async function getCountry(iso3Code: string): Promise<Country> {
+    if (countryCache.has(iso3Code)) return countryCache.get(iso3Code)!;
+    const country: Country | null = await prisma.country.findUnique({
+      where: { iso3Code: iso3Code },
+    });
+    if (!country) throw Error(`Country not found for ${iso3Code}`);
+    countryCache.set(iso3Code, country);
+
+    return country;
+  }
+
+  return Promise.all(
+    countryPaths.map(async (cp) => {
+      const c1: Country = await getCountry(cp.country1ISO3);
+      const c2: Country = await getCountry(cp.country2ISO3);
+      const pathCountries: Country[][] = await Promise.all(
+        cp.path.split(';').map(async (p) => {
+          return await Promise.all(p.split(',').map(getCountry));
+        })
+      );
+
+      return {
+        country1: c1,
+        country2: c2,
+        paths: pathCountries,
+      };
+    })
+  );
 }
 
 export async function getCapitals(

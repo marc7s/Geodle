@@ -75,6 +75,7 @@ export interface SeedCountry {
   englishLongName?: string;
   domesticName: string;
   aliases: string[];
+  bordersISO3: string[];
   coordinates: SeedCoordinate;
   capital: SeedCity;
 }
@@ -163,6 +164,17 @@ export async function GetSeedCountries(
           `Invalid lat or long for city ${englishShortName}: ${lat} ${long}`
         );
 
+      // Validate bordering countries
+      const bordersValue: string = row[CountryCSVHeaders['borders']];
+      if (
+        bordersValue.length > 0 &&
+        !bordersValue.match(/^[A-Z]{3}(,[A-Z]{3})*$/)
+      )
+        reject(
+          `Invalid bordering countries '${bordersValue}' for ${logCountryName}`
+        );
+      const bordersISO3: string[] = bordersValue.split(',');
+
       // Validate capital
       const capital: SeedCity | undefined = seedCities.find(
         (c) => c.countryISO2Code === countryISO2 && c.isCapital
@@ -197,6 +209,7 @@ export async function GetSeedCountries(
         englishLongName: row[CountryCSVHeaders['name.official']],
         domesticName: row[CountryCSVHeaders['name.official']],
         aliases: [],
+        bordersISO3: bordersISO3,
         coordinates: {
           lat: lat,
           long: long,

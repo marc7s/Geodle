@@ -34,6 +34,7 @@ async function createCountry(seedCountry: SeedCountry, region: Region) {
       lat: seedCountry.coordinates.lat,
       long: seedCountry.coordinates.long,
       regionId: region.id,
+      bordersISO3: seedCountry.bordersISO3.join(','),
     },
   });
 }

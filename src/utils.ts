@@ -178,6 +178,11 @@ export function getDailySolution<T>(
   return arraySeededShuffle(possibilities, seed).at(0);
 }
 
+// Returns true if the two countries share a border
+export function countryBorders(country1: Country, country2: Country): boolean {
+  return country1.bordersISO3.split(',').includes(country2.iso3Code);
+}
+
 // Fisher-Yates shuffle
 export function arrayShuffle<T>(arr: T[]) {
   let currentIndex = arr.length;

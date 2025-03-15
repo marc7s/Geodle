@@ -20,6 +20,7 @@ import {
   TrailGuesserGame,
   PuzzleGuesserGame,
   OutlinerGame,
+  PatherGame,
 } from '@/types/games';
 import { Feature, GameParams } from '@/types/routing/dynamicParams';
 
@@ -58,6 +59,10 @@ const minigames: {
   {
     game: OutlinerGame,
     hrefGenerator: (gp: GameParams) => OutlinerGame.getHref(gp),
+  },
+  {
+    game: PatherGame,
+    hrefGenerator: (gp: GameParams) => PatherGame.getHref(gp),
   },
 ];
 
