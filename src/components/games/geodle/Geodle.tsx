@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useGameContext } from '@/context/Game';
 import { GameParams } from '@/types/routing/dynamicParams';
 import { GeodleGame } from '@/types/games';
+import GiveUpDialog from '@/components/ui/GiveUpDialog';
 
 interface CursorPosition {
   x: number;
@@ -133,6 +134,18 @@ export default function Geodle({
     );
   }
 
+  function finish(gaveUp: boolean) {
+    gameContext.finish({
+      singleWithTries: true,
+
+      correctAnswer: correct,
+      succeeded: !gaveUp,
+      gaveUp: gaveUp,
+      availableTries: allowedGuessCount,
+      numberOfTries: state.cursor.y + 1,
+    });
+  }
+
   function onKeyPress(key: string) {
     // Since we are bound to the same row,
     // there is an edge case where we are at the right-most index, but we have already entered a value
@@ -164,16 +177,7 @@ export default function Geodle({
         cursor: { x: 0, y: state.cursor.y + 1 },
       });
 
-      if (guess === correctNoSpaces.toLocaleLowerCase())
-        gameContext.finish({
-          singleWithTries: true,
-
-          correctAnswer: correct,
-          succeeded: true,
-          gaveUp: false,
-          availableTries: allowedGuessCount,
-          numberOfTries: state.cursor.y + 1,
-        });
+      if (guess === correctNoSpaces.toLocaleLowerCase()) finish(false);
       return;
     }
 
@@ -211,6 +215,12 @@ export default function Geodle({
             )}
           />
         </div>
+      </div>
+      <div className='text-center mt-20'>
+        <GiveUpDialog onGiveUp={() => finish(true)} />
+        {/*gameContext.gameStatus.timeStarted && (
+          
+        )*/}
       </div>
     </>
   );
