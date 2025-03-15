@@ -15,7 +15,7 @@ const countriesDir: string = join(dataBasePath, 'countries');
 // Maps continent file names to lists of ISO2 codes for countries that should be added to the continent files
 // This is due to mismatches between the region/country model and the GeoJSON region files from geojson-places
 const regionComplements: Map<GameRegion, string[]> = new Map([
-  ['Europe', ['RU', 'XK']],
+  ['Europe', ['RU', 'XK', 'CY']],
 ]);
 
 // Output directories
