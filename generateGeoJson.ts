@@ -12,6 +12,12 @@ const dataBasePath: string = join(
 const continentsDir: string = join(dataBasePath, 'continents');
 const countriesDir: string = join(dataBasePath, 'countries');
 
+// Maps continent file names to lists of ISO2 codes for countries that should be added to the continent files
+// This is due to mismatches between the region/country model and the GeoJSON region files from geojson-places
+const regionComplements: Map<GameRegion, string[]> = new Map([
+  ['Europe', ['RU', 'XK']],
+]);
+
 // Output directories
 const outputDir: string = join(process.cwd(), 'src/data/generated/geo');
 const countriesOutputDir: string = join(outputDir, 'countries');
@@ -75,7 +81,7 @@ function runMapshaper(command: string): Promise<string> {
 // Combines several files into one
 function combine(paths: string[], outputPath: string): Promise<string> {
   return runMapshaper(
-    `-i ${paths.join(' ')} combine-files -merge-layers -o precision=0.001 bbox ${outputPath}`
+    `-i ${paths.join(' ')} combine-files -merge-layers force -o force precision=0.001 bbox ${outputPath}`
   );
 }
 
@@ -130,11 +136,30 @@ async function main() {
     )
   );
 
-  beginSection('Minimizing files');
-  // Minimizes all regions
+  beginSection('Complementing regions');
   const regionPaths: string[] = readdirSync(regionsOutputDir).filter((f) =>
     f.match(/^\w+\.json/)
   );
+  await Promise.all(
+    regionPaths.map(async (regionPath: string) => {
+      const countriesToAdd: string[] | undefined = regionComplements.get(
+        regionPath.replace('.json', '') as GameRegion
+      );
+
+      if (countriesToAdd) {
+        return combine(
+          [
+            join(regionsOutputDir, regionPath),
+            ...countriesToAdd.map((iso2) => join(countriesDir, `${iso2}.json`)),
+          ],
+          join(regionsOutputDir, regionPath)
+        );
+      }
+    })
+  );
+
+  beginSection('Minimizing files');
+  // Minimizes all regions
   await Promise.all(
     regionPaths.map((f) =>
       simplify(
@@ -148,7 +173,6 @@ async function main() {
   const countryPaths: string[] = readdirSync(countriesOutputDir).filter((f) =>
     f.match(/[A-Z]{2}\.json/)
   );
-
   await Promise.all(
     countryPaths.map((f) =>
       simplify(
