@@ -5,6 +5,7 @@ import { GameRegion } from './types/routing/generated/regions';
 import { Feature, GameParams } from './types/routing/dynamicParams';
 import { createHash } from 'crypto';
 import { Game } from './types/games';
+const unidecode = require('unidecode');
 
 export type DailyGameAdditionalConfig = { [key: string]: string };
 
@@ -51,11 +52,17 @@ export const MapDefaultConfigs: {
 export function isCorrect(
   answer: string,
   correct: string,
-  caseSensitive: boolean = false
+  caseSensitive: boolean = false,
+  asciiTranslation: boolean = true
 ) {
   if (!caseSensitive) {
     answer = answer.toLocaleLowerCase();
     correct = correct.toLocaleLowerCase();
+  }
+
+  if (asciiTranslation) {
+    answer = unidecode(answer);
+    correct = unidecode(correct);
   }
 
   return answer === correct;
