@@ -107,6 +107,7 @@ export default function Outliner({
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}
         onIncorrectAnswer={handleIncorrectGuess}
+        alreadyAnswered={guesses}
         possibleAnswers={possibleAnswers}
         allowGivingUp={false}
         isReusable={true}

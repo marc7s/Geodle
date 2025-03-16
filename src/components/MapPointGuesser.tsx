@@ -196,6 +196,13 @@ export default function MapPointGuesser(props: Props) {
         <QuestionTask
           question={question}
           allowGivingUp={false}
+          alreadyAnswered={points
+            .filter((p) => p.complete)
+            .map((p) => p.answers)
+            .reduce(
+              (totAnswers, pointAnswers) => totAnswers.concat(pointAnswers),
+              []
+            )}
           isReusable={true}
           onQuestionStarted={gameContext.start}
           onCorrectAnswer={handleCorrectGuess}

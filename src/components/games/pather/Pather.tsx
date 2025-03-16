@@ -183,6 +183,7 @@ export default function Pather({
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}
+        alreadyAnswered={guesses.map((g) => g.name)}
         allowGivingUp={false}
         isReusable={true}
       />

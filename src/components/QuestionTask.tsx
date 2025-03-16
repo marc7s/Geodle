@@ -27,6 +27,7 @@ interface Props {
   onCorrectAnswer: (_: Question, correctAnswer: string) => void;
   onIncorrectAnswer?: (_: Question, correctAnswer: string | undefined) => void;
   possibleAnswers?: string[];
+  alreadyAnswered?: string[];
   focused?: boolean;
   isReusable?: boolean;
   allowGivingUp?: boolean;
@@ -38,11 +39,13 @@ export default function QuestionTask({
   onCorrectAnswer,
   onIncorrectAnswer,
   possibleAnswers = question.correctAnswers,
+  alreadyAnswered = [],
   focused = false,
   isReusable = false,
   allowGivingUp = true,
 }: Props) {
   const [answer, setAnswer] = useState('');
+  const [isAlreadyAnswered, setIsAlreadyAnswered] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
   const [inputRef, setInputFocus] = useFocus();
@@ -65,12 +68,20 @@ export default function QuestionTask({
     setAnswer(newAnswer);
     if (!started) onQuestionStarted();
     setStarted(true);
+
+    const matchingAlreadyAnswered: string | undefined = alreadyAnswered.find(
+      (a) => isCorrect(newAnswer, a, question.caseSensitive)
+    );
     const matchingCorrectAnswer: string | undefined =
       question.correctAnswers.find((a) =>
         isCorrect(newAnswer, a, question.caseSensitive)
       );
 
-    if (matchingCorrectAnswer) {
+    setIsAlreadyAnswered(matchingAlreadyAnswered !== undefined);
+
+    if (matchingAlreadyAnswered) {
+      return;
+    } else if (matchingCorrectAnswer) {
       onCorrectAnswer(question, matchingCorrectAnswer);
       setAnswer(isReusable ? '' : matchingCorrectAnswer);
       if (!isReusable) setDisabled(true);
@@ -91,7 +102,7 @@ export default function QuestionTask({
         <h1 className='text-xl mr-3'>{question.question}:</h1>
         <input
           ref={inputRef}
-          className='text-xl pl-1'
+          className={`text-xl pl-1 ${isAlreadyAnswered ? 'text-orange-500 font-bold' : ''}`}
           type='text'
           value={answer}
           onChange={(event) => {

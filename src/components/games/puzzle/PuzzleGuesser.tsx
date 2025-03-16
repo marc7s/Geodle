@@ -93,6 +93,7 @@ export default function PuzzleGuesser({
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}
+        alreadyAnswered={pieces.filter((p) => p.guessed).map((p) => p.name)}
         allowGivingUp={false}
         isReusable={true}
       />

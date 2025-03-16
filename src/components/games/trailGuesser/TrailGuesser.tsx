@@ -179,9 +179,16 @@ export default function TrailGuesser({
       <div className='mb-2'>Enter your guess</div>
       <div>
         <SelectQuestionTask
-          options={dropdownFeatures.map((e) => {
-            return { value: e.selectValue, label: e.displayValue };
-          })}
+          options={dropdownFeatures
+            .filter(
+              (e) =>
+                !guesses.find(
+                  (g) => g.guessedFeature.selectValue === e.selectValue
+                )
+            )
+            .map((e) => {
+              return { value: e.selectValue, label: e.displayValue };
+            })}
           dropdownPlaceholder={`Select ${singularFeature}...`}
           searchPlaceholder={`Search ${feature}...`}
           correctValue={correctFeature.selectValue}
