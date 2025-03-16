@@ -100,7 +100,7 @@ export default function Pather({
     const guess = possiblePieces.find(
       (p) => p.outline.name === answer
     )?.outline;
-    if (!guess) return;
+    if (!guess || guesses.find((g) => g.name === guess.name)) return;
     setGuesses([...guesses, guess]);
   }
 
