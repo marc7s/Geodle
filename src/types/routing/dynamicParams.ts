@@ -5,7 +5,7 @@ export const gameModes = ['training', 'daily'] as const;
 export type GameMode = (typeof gameModes)[number];
 
 // Define a custom type for the possible selections
-export const countrySelections = ['all', 'independent', 'curated'] as const;
+export const countrySelections = ['all', 'independent'] as const;
 export type CountrySelection = (typeof countrySelections)[number];
 
 // Define a custom type for the possible Features

@@ -75,7 +75,7 @@ export async function getCapitalsDB(
         Region: {
           name: region === 'World' ? undefined : region,
         },
-        isCurated: selection === 'curated' ? true : undefined,
+        isCurated: selection === undefined,
         isIndependent: selection === 'independent' ? true : undefined,
       },
     },
@@ -93,7 +93,7 @@ async function getCountriesDB(
       Region: {
         name: region === 'World' ? undefined : region,
       },
-      isCurated: selection === 'curated' ? true : undefined,
+      isCurated: selection === undefined,
       isIndependent: selection === 'independent' ? true : undefined,
     },
   });
