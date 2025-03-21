@@ -22,7 +22,8 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { TrailGuesserGame } from '@/types/games';
+import { SeedInfo, TrailGuesserGame } from '@/types/games';
+import { handleSeedClientSide } from '@/utils';
 
 export interface TrailFeature {
   point: GeoPoint;
@@ -42,6 +43,7 @@ interface Props {
   dropdownFeatures: TrailFeature[];
   correctFeature: TrailFeature;
   gameConfig: GameParams;
+  seedInfo: SeedInfo;
 }
 
 export default function TrailGuesser({
@@ -51,7 +53,17 @@ export default function TrailGuesser({
   dropdownFeatures,
   correctFeature,
   gameConfig,
+  seedInfo,
 }: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    TrailGuesserGame,
+    gameConfig,
+    {},
+    (newSeed: number) => TrailGuesserGame.getSeededHref(gameConfig, newSeed),
+    () => TrailGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const [guesses, setGuesses] = useState<FeatureGuess[]>([]);
   const singularFeature: string = formatSingularFeature(feature);
 

@@ -14,10 +14,10 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PuzzleGuesserGame } from '@/types/games';
+import { OutlinerGame, PuzzleGuesserGame, SeedInfo } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { MapConfig } from '@/utils';
+import { handleSeedClientSide, MapConfig } from '@/utils';
 import { GeoOutlineData } from '@/geoUtils';
 
 interface Props {
@@ -28,6 +28,7 @@ interface Props {
   possibleAnswers: string[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
+  seedInfo: SeedInfo;
 }
 
 export default function Outliner({
@@ -38,7 +39,17 @@ export default function Outliner({
   possibleAnswers,
   gameConfig,
   mapConfig,
+  seedInfo,
 }: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    OutlinerGame,
+    gameConfig,
+    {},
+    (newSeed: number) => OutlinerGame.getSeededHref(gameConfig, newSeed),
+    () => OutlinerGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const singularFeature: string = formatSingularFeature(feature);
   const [guesses, setGuesses] = useState<string[]>([]);
 

@@ -6,8 +6,9 @@ import { Keyboard } from './Keyboard';
 import { toast } from 'sonner';
 import { useGameContext } from '@/context/Game';
 import { GameParams } from '@/types/routing/dynamicParams';
-import { GeodleGame } from '@/types/games';
+import { GeodleGame, SeedInfo } from '@/types/games';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
+import { handleSeedClientSide } from '@/utils';
 
 interface CursorPosition {
   x: number;
@@ -33,6 +34,7 @@ interface Props {
   allowedGuessCount: number;
   allowedGuesses: string[];
   gameConfig: GameParams;
+  seedInfo: SeedInfo;
 }
 export default function Geodle({
   title,
@@ -40,7 +42,17 @@ export default function Geodle({
   allowedGuessCount,
   allowedGuesses,
   gameConfig,
+  seedInfo,
 }: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    GeodleGame,
+    gameConfig,
+    {},
+    (newSeed: number) => GeodleGame.getSeededHref(gameConfig, newSeed),
+    () => GeodleGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const gameContext = useGameContext();
   // Initialize the game
   useEffect(() => {

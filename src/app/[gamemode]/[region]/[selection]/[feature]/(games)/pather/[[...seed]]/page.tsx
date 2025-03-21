@@ -2,26 +2,54 @@ import { CountryPath, getCountries, getCountryPaths } from '@/api';
 import {
   MapConfig,
   MapDefaultConfigs,
-  generateStaticFeatureParams,
+  generateStaticSeedParams,
   getSolution,
 } from '@/utils';
 import { Country } from '@prisma/client';
 import { GameParams } from '@/types/routing/dynamicParams';
-import { PatherGame } from '@/types/games';
+import { PatherGame, SeedInfo } from '@/types/games';
 import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
 import { getCountryOutlineData, getRegionOutlineData } from '@/geoBuildUtils';
 import Pather from '@/components/games/pather/Pather';
+import { getSeed } from '@/backendUtils';
 
 export interface PatherPiece {
   country: Country;
   outline: GeoOutlineData;
 }
 
-export async function generateStaticParams() {
-  return generateStaticFeatureParams(...PatherGame.allowedFeatures);
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(() => getPatherPossibilities(gp));
+}
+
+async function getPatherPossibilities({
+  params,
+}: GameParams): Promise<CountryPath[]> {
+  // Get all paths
+  const paths: CountryPath[] = await getCountryPaths(
+    params.selection,
+    params.region
+  );
+
+  // Since the paths are bidirectional, we can double the number of possible paths by reversing each path
+  const directionalPaths: CountryPath[] = [
+    ...paths,
+    ...paths.map((p) => {
+      return {
+        country1: p.country2,
+        country2: p.country1,
+        paths: p.paths.map((p) => p.reverse()),
+      };
+    }),
+  ];
+  return directionalPaths;
 }
 
 export default async function PatherPage({ params }: GameParams) {
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    PatherGame.getSeededHref({ params: params }, newSeed)
+  );
+
   const config: GameParams = {
     params: params,
   };
@@ -36,35 +64,21 @@ export default async function PatherPage({ params }: GameParams) {
   const backgroundData: GeoJsonData[] = getRegionOutlineData(params.region);
 
   let solution: CountryPath | undefined = undefined;
+  let seedInfo: SeedInfo | undefined = undefined;
 
   switch (params.feature) {
     case 'countries':
+      const directionalPaths: CountryPath[] = await getPatherPossibilities({
+        params,
+      });
+      solution = getSolution(directionalPaths, seed);
+
+      if (!solution) return <>No solution found</>;
+
       const countries: Country[] = await getCountries(
         params.selection,
         params.region
       );
-
-      // Get all paths
-      const paths: CountryPath[] = await getCountryPaths(
-        params.selection,
-        params.region
-      );
-
-      // Since the paths are bidirectional, we can double the number of possible paths by reversing each path
-      const directionalPaths: CountryPath[] = [
-        ...paths,
-        ...paths.map((p) => {
-          return {
-            country1: p.country2,
-            country2: p.country1,
-            paths: p.paths.map((p) => p.reverse()),
-          };
-        }),
-      ];
-
-      solution = getSolution(PatherGame, config, directionalPaths);
-
-      if (!solution) return <>No solution found</>;
 
       // Create pieces for each country
       const countryPuzzlePieces: PatherPiece[] = countries.map((c) => {
@@ -82,6 +96,11 @@ export default async function PatherPage({ params }: GameParams) {
         )
         .flat();
       bestPieces.push(...shortestPathCountryPuzzlePieces);
+
+      seedInfo = {
+        seed: seed,
+        seedCount: directionalPaths.length,
+      };
       break;
     case 'capitals':
       return <>Outliner does not support capitals</>;
@@ -113,6 +132,7 @@ export default async function PatherPage({ params }: GameParams) {
           backgroundData={backgroundData}
           gameConfig={config}
           mapConfig={mapConfig}
+          seedInfo={seedInfo}
         />
       )}
     </>

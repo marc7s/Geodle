@@ -2,12 +2,12 @@ import { getCapitals, getCountries } from '@/api';
 import {
   MapConfig,
   MapDefaultConfigs,
-  generateStaticFeatureParams,
+  generateStaticSeedParams,
   getSolutions,
 } from '@/utils';
 import { City, Country } from '@prisma/client';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
-import { PuzzleGuesserGame } from '@/types/games';
+import { PuzzleGuesserGame, SeedInfo } from '@/types/games';
 import PuzzleGuesser from '@/components/games/puzzle/PuzzleGuesser';
 import { GeoOutlineData, GeoJsonData } from '@/geoUtils';
 import {
@@ -15,13 +15,36 @@ import {
   getCountryOutlineData,
   getRegionOutlineData,
 } from '@/geoBuildUtils';
+import { getSeed } from '@/backendUtils';
 
-// PuzzleGuesser supports countries and capitals
-export async function generateStaticParams() {
-  return generateStaticFeatureParams('countries', 'capitals');
+// In training, there is only a single seed
+// The order of the array does not matter, as you have to guess them all in any order
+// PuzzleGuesser has no daily mode
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(
+    () => getPuzzleGuesserPossibilities(gp),
+    true // Training has a single seed, and daily is not supported. So always generate a single seed
+  );
+}
+
+async function getPuzzleGuesserPossibilities({
+  params,
+}: GameParams): Promise<(Country | City)[]> {
+  switch (params.feature) {
+    case 'capitals':
+      return await getCapitals(params.selection, params.region);
+    case 'countries':
+      return await getCountries(params.selection, params.region);
+    default:
+      throw new Error('Invalid feature');
+  }
 }
 
 export default async function PuzzleGuesserPage({ params }: GameParams) {
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    PuzzleGuesserGame.getSeededHref({ params: params }, newSeed)
+  );
+
   if (params.gamemode === 'daily')
     return <>Puzzle does not have a daily challenge</>;
 
@@ -34,19 +57,22 @@ export default async function PuzzleGuesserPage({ params }: GameParams) {
     maxZoom: 10,
   };
 
+  const possibilities: (Country | City)[] = await getPuzzleGuesserPossibilities(
+    {
+      params,
+    }
+  );
+
   const pieces: GeoOutlineData[] = [];
   const backgroundData: GeoJsonData[] = getRegionOutlineData(params.region);
 
   switch (params.feature) {
     case 'countries':
-      const countries: Country[] = await getCountries(
-        params.selection,
-        params.region
-      );
+      const countries: Country[] = possibilities as Country[];
       const correctCountries: Country[] | undefined = getSolutions(
-        PuzzleGuesserGame,
         config,
-        countries
+        countries,
+        seed
       );
       if (!correctCountries) return <>Error! Could not generate the solution</>;
       const countryPuzzlePieces: GeoOutlineData[] = correctCountries.map((c) =>
@@ -55,14 +81,11 @@ export default async function PuzzleGuesserPage({ params }: GameParams) {
       pieces.push(...countryPuzzlePieces);
       break;
     case 'capitals':
-      const capitals: City[] = await getCapitals(
-        params.selection,
-        params.region
-      );
+      const capitals: City[] = possibilities as City[];
       const correctCapitals: City[] | undefined = getSolutions(
-        PuzzleGuesserGame,
         config,
-        capitals
+        capitals,
+        seed
       );
       if (!correctCapitals) return <>Error! Could not generate the solution</>;
       const cityPuzzlePieces: GeoOutlineData[] = correctCapitals.map((c) =>
@@ -71,6 +94,11 @@ export default async function PuzzleGuesserPage({ params }: GameParams) {
       pieces.push(...cityPuzzlePieces);
       break;
   }
+
+  const seedInfo: SeedInfo = {
+    seed: seed,
+    seedCount: params.gamemode === 'training' ? 1 : possibilities.length,
+  };
 
   return (
     <>
@@ -81,6 +109,7 @@ export default async function PuzzleGuesserPage({ params }: GameParams) {
         backgroundData={backgroundData}
         gameConfig={config}
         mapConfig={mapConfig}
+        seedInfo={seedInfo}
       />
     </>
   );

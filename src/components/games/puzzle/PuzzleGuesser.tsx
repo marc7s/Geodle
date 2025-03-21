@@ -14,10 +14,10 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PuzzleGuesserGame } from '@/types/games';
+import { PuzzleGuesserGame, SeedInfo } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { MapConfig } from '@/utils';
+import { handleSeedClientSide, MapConfig } from '@/utils';
 import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
 
 interface Props {
@@ -27,6 +27,7 @@ interface Props {
   backgroundData: GeoJsonData[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
+  seedInfo: SeedInfo;
 }
 
 export default function PuzzleGuesser({
@@ -36,7 +37,17 @@ export default function PuzzleGuesser({
   backgroundData,
   gameConfig,
   mapConfig,
+  seedInfo,
 }: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    PuzzleGuesserGame,
+    gameConfig,
+    {},
+    (newSeed: number) => PuzzleGuesserGame.getSeededHref(gameConfig, newSeed),
+    () => PuzzleGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const singularFeature: string = formatSingularFeature(feature);
   const [pieces, setPieces] = useState<GeoOutlineData[]>(puzzlePieces);
 

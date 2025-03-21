@@ -294,18 +294,18 @@ export default function GameBuilder(props: Props) {
             target={props.isPopup ? undefined : '_blank'}
             href={
               game === CompleterGame
-                ? CompleterGame.getCompleterHref(
-                    {
-                      params: {
-                        gamemode: gamemode,
-                        region: region,
-                        selection: selection,
-                        feature: feature,
-                      },
-                    },
-                    knownAttributes,
-                    guessAttributes
-                  )
+                ? CompleterGame.getCompleterHref({
+                    gamemode: gamemode,
+                    region: region,
+                    selection: selection,
+                    feature: feature,
+                    knownAttributes: knownAttributes.join(
+                      CompleterGame.separator
+                    ),
+                    guessAttributes: guessAttributes.join(
+                      CompleterGame.separator
+                    ),
+                  })
                 : game.getHref({
                     params: {
                       gamemode: gamemode,

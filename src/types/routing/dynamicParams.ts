@@ -43,6 +43,7 @@ interface GameParamObject {
   region: GameRegion;
   selection: CountrySelection;
   feature: Feature;
+  seed?: string[];
 }
 
 export interface CompleteGameParams extends GameParamObject {

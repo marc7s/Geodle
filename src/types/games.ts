@@ -1,6 +1,7 @@
 import { getAllParamCombinations } from '@/utils';
 import {
   Attribute,
+  CompleteGameParams,
   CountrySelection,
   Feature,
   GameMode,
@@ -19,6 +20,11 @@ interface GameBase {
   allowedFeatures: readonly Feature[];
 }
 
+export interface SeedInfo {
+  seed: number;
+  seedCount: number;
+}
+
 export class Game {
   readonly displayName: string;
   readonly linkName: string;
@@ -29,8 +35,22 @@ export class Game {
   readonly allowedSelections: readonly CountrySelection[] = countrySelections;
   readonly allowedFeatures: readonly Feature[];
 
+  // Get a random seed, out of the available ones
+  protected getRandomSeed(seedInfo: SeedInfo): number {
+    return Math.floor(Math.random() * seedInfo.seedCount) + 1;
+  }
+
   getHref({ params }: GameParams): string {
     return `/${params.gamemode}/${params.region}/${params.selection}/${params.feature}/${this.linkName}`;
+  }
+
+  getSeededHref({ params }: GameParams, seed: number | undefined): string {
+    const seedSlug: string = (seed ?? 0).toString();
+    return `${this.getHref({ params })}/${seedSlug}`;
+  }
+
+  getRandomSeededHref({ params }: GameParams, seedInfo: SeedInfo): string {
+    return this.getSeededHref({ params }, this.getRandomSeed(seedInfo));
   }
 
   constructor(base: GameBase) {
@@ -47,7 +67,7 @@ class CompleterGameClass extends Game {
   readonly knownAttributeCombinations: Map<Attribute[], string>;
   readonly guessAttributeCombinations: Map<Attribute[], string>;
 
-  private separator: string = '&';
+  public readonly separator: string = '&';
 
   encodeAttributes(attributes: string[]): string {
     return attributes.join(this.separator);
@@ -57,17 +77,58 @@ class CompleterGameClass extends Game {
     return decodeURIComponent(attributes).split(this.separator);
   }
 
-  // We need more information to be able to generate the href, so we override the base method and make it throw an error if used
+  convertParams(completeParams: CompleteGameParams): GameParams {
+    return {
+      params: {
+        gamemode: completeParams.gamemode,
+        region: completeParams.region,
+        selection: completeParams.selection,
+        feature: completeParams.feature,
+        seed: completeParams.seed,
+      },
+    };
+  }
+
+  // *** We need more information to be able to generate the href, so we override the base method and make it throw an error if used ***
   getHref(_: GameParams): string {
     throw new Error('Do not call this, call getCompleterHref() instead');
   }
 
-  getCompleterHref(
-    gameParams: GameParams,
-    knownAttributes: Attribute[],
-    guessAttributes: Attribute[]
+  getSeededHref(_: GameParams, __: number | undefined): string {
+    throw new Error('Do not call this, call getCompleterSeededHref() instead');
+  }
+
+  getRandomSeededHref(_: GameParams, __: SeedInfo): string {
+    throw new Error(
+      'Do not call this, call getCompleterRandomSeededHref() instead'
+    );
+  }
+  // ******
+
+  getCompleterHref(params: CompleteGameParams): string {
+    const knownAttributes: Attribute[] = params.knownAttributes.split(
+      this.separator
+    ) as Attribute[];
+    const guessAttributes: Attribute[] = params.guessAttributes.split(
+      this.separator
+    ) as Attribute[];
+    return `${super.getHref(this.convertParams(params))}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
+  }
+
+  getCompleterSeededHref(
+    params: CompleteGameParams,
+    seed: number | undefined
   ): string {
-    return `${super.getHref(gameParams)}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
+    const seedSlug: string = (seed ?? 0).toString();
+
+    return `${this.getCompleterHref(params)}/${seedSlug}`;
+  }
+
+  getCompleterRandomSeededHref(
+    params: CompleteGameParams,
+    seedInfo: SeedInfo
+  ): string {
+    return this.getCompleterSeededHref(params, this.getRandomSeed(seedInfo));
   }
 
   constructor(

@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react';
 import { useGameContext } from '@/context/Game';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { Button } from '@/components/ui/button';
-import { GameParams } from '@/types/routing/dynamicParams';
-import { CompleterGame } from '@/types/games';
+import { CompleteGameParams } from '@/types/routing/dynamicParams';
+import { CompleterGame, SeedInfo } from '@/types/games';
+import { DailyGameAdditionalConfig, handleSeedClientSide } from '@/utils';
 
 export interface CompleteQuestion {
   knownQuestions: Question[];
@@ -17,13 +18,33 @@ export interface CompleteQuestion {
 
 interface Props {
   questions: CompleteQuestion[];
-  gameConfig: GameParams;
+  gameConfig: CompleteGameParams;
+  seedInfo: SeedInfo;
+  additionalDailyConfig: DailyGameAdditionalConfig;
 }
 
-export default function CompleteGuesser({ questions, gameConfig }: Props) {
+export default function CompleteGuesser({
+  questions,
+  gameConfig,
+  seedInfo,
+  additionalDailyConfig,
+}: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    CompleterGame,
+    { params: gameConfig },
+    additionalDailyConfig,
+    (newSeed: number) =>
+      CompleterGame.getCompleterSeededHref(gameConfig, newSeed),
+    () => CompleterGame.getCompleterRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const gameContext = useGameContext();
   useEffect(() => {
-    gameContext.init({ game: CompleterGame, params: gameConfig });
+    gameContext.init({
+      game: CompleterGame,
+      params: CompleterGame.convertParams(gameConfig),
+    });
   }, [gameContext, gameConfig]);
 
   const [questionsLeft, setQuestionsLeft] =

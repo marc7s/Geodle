@@ -1,5 +1,5 @@
 import { getCountries } from '@/api';
-import { generateStaticFeatureParams, getSolution } from '@/utils';
+import { generateStaticSeedParams, getSolution } from '@/utils';
 import { Country } from '@prisma/client';
 import {
   GameParams,
@@ -7,25 +7,34 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import Geodle from '@/components/games/geodle/Geodle';
-import { GeodleGame } from '@/types/games';
+import { GeodleGame, SeedInfo } from '@/types/games';
+import { getSeed } from '@/backendUtils';
 
-export async function generateStaticParams() {
-  return generateStaticFeatureParams(...GeodleGame.allowedFeatures);
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(() => getGeodlePossibilities(gp));
+}
+
+async function getGeodlePossibilities({
+  params,
+}: GameParams): Promise<Country[]> {
+  return await getCountries(params.selection, params.region);
 }
 
 export default async function GeodlePage({ params }: GameParams) {
-  const countries: Country[] = await getCountries(
-    params.selection,
-    params.region
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    GeodleGame.getSeededHref({ params: params }, newSeed)
   );
-  const correctCountry: Country | undefined = getSolution(
-    GeodleGame,
-    { params: params },
-    countries
-  );
+
+  const countries = await getGeodlePossibilities({ params: params });
+  const correctCountry: Country | undefined = getSolution(countries, seed);
 
   if (!correctCountry)
     return <>Error! Could not generate the correct country</>;
+
+  const seedInfo: SeedInfo = {
+    seed: seed,
+    seedCount: countries.length,
+  };
 
   function getAllowedGuesses(): number {
     switch (params.region) {
@@ -52,6 +61,7 @@ export default async function GeodlePage({ params }: GameParams) {
         allowedGuessCount={getAllowedGuesses()}
         allowedGuesses={countries.map((c) => c.englishShortName)}
         gameConfig={{ params: params }}
+        seedInfo={seedInfo}
       ></Geodle>
     </>
   );

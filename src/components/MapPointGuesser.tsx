@@ -1,17 +1,17 @@
 'use client';
 
 import { Colors } from '@/colors';
-import { MapConfig } from '@/utils';
+import { handleSeedClientSide, MapConfig } from '@/utils';
 import { Map, Marker, Overlay, Point } from 'pigeon-maps';
 import styles from './MapPointGuesser.module.scss';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import QuestionTask, { Question } from './QuestionTask';
 import { MapStyle, stadiamaps } from '@/mapProviders';
 import { isMobile } from 'react-device-detect';
 import { Progress } from '@/components/ui/progress';
 import GiveUpDialog from './ui/GiveUpDialog';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PointGuesserGame } from '@/types/games';
+import { PointGuesserGame, SeedInfo } from '@/types/games';
 import {
   GameParams,
   formatSingularFeature,
@@ -31,24 +31,52 @@ export interface PointInfo {
 }
 
 interface Props {
-  points: PointInfo[];
+  pointInfos: PointInfo[];
   config: MapConfig;
   style: MapStyle;
   gameConfig: GameParams;
+  seedInfo: SeedInfo;
   markerWidth?: number;
 }
 
-export default function MapPointGuesser(props: Props) {
-  const gameContext: GameContext = useGameContext();
-  useEffect(() => {
-    gameContext.init({ game: PointGuesserGame, params: props.gameConfig });
-  }, [gameContext, props.gameConfig]);
+export default function MapPointGuesser({
+  pointInfos,
+  config,
+  style,
+  gameConfig,
+  seedInfo,
+  markerWidth,
+}: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    PointGuesserGame,
+    gameConfig,
+    {},
+    (newSeed: number) => PointGuesserGame.getSeededHref(gameConfig, newSeed),
+    () => PointGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
 
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();
-  const [points, setPoints] = useState<PointInfo[]>(props.points);
+  const [points, setPoints] = useState<PointInfo[]>(pointInfos);
   const [center, setCenter] = useState<[number, number]>();
   const [zoom, setZoom] = useState<number>();
+
+  const centerOnUncompleted = useCallback(() => {
+    const notGuessed = points.find((p) => !p.complete);
+    if (!notGuessed) return;
+    setCenter(notGuessed.position);
+    setZoom(5);
+    setMarked([notGuessed]);
+  }, [points, setCenter, setZoom, setMarked]);
+
+  const gameContext: GameContext = useGameContext();
+  useEffect(() => {
+    gameContext.init({ game: PointGuesserGame, params: gameConfig });
+
+    // In daily mode, a single point is selected, so center on it
+    if (gameConfig.params.gamemode === 'daily') centerOnUncompleted();
+  }, [gameContext, gameConfig, centerOnUncompleted]);
 
   function finish(gaveUp: boolean) {
     gameContext.finish({
@@ -68,8 +96,8 @@ export default function MapPointGuesser(props: Props) {
   }, [points]);
 
   const question: Question = {
-    question: `Enter the name of a marked ${formatSingularFeature(props.gameConfig.params.feature)}`,
-    correctAnswers: props.points
+    question: `Enter the name of a marked ${formatSingularFeature(gameConfig.params.feature)}`,
+    correctAnswers: pointInfos
       .map((p) => p.answers)
       .reduce(
         (totAnswers, pointAnswers) => totAnswers.concat(pointAnswers),
@@ -125,28 +153,20 @@ export default function MapPointGuesser(props: Props) {
     setMarked([]);
   }
 
-  function centerOnUncompleted() {
-    const notGuessed = points.find((p) => !p.complete);
-    if (!notGuessed) return;
-    setCenter(notGuessed.position);
-    setZoom(5);
-    setMarked([notGuessed]);
-  }
-
   return (
     <div className='flex-col items-center justify-center'>
       <div>
         <Map
           height={900}
           width={900}
-          defaultCenter={props.config.position}
-          defaultZoom={props.config.zoom}
+          defaultCenter={config.position}
+          defaultZoom={config.zoom}
           center={center}
           minZoom={1}
           maxZoom={5}
           zoom={zoom}
           onClick={unmarkAll}
-          provider={stadiamaps(props.style)}
+          provider={stadiamaps(style)}
           onBoundsChanged={({ center, zoom }) => {
             setCenter(center);
             setZoom(zoom);
@@ -159,7 +179,7 @@ export default function MapPointGuesser(props: Props) {
                 <Marker
                   className={styles.marker}
                   key={i}
-                  width={props.markerWidth}
+                  width={markerWidth}
                   color={(marked.includes(pi)
                     ? Colors.Focused
                     : pi.complete

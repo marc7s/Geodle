@@ -1,4 +1,6 @@
 import {
+  DailyGameAdditionalConfig,
+  generateStaticSeedParams,
   getFlagURL,
   getSetValues,
   getSolutions,
@@ -10,11 +12,23 @@ import {
   Attribute,
   CompleteGameParams,
   formatRegion,
+  GameParams,
 } from '@/types/routing/dynamicParams';
 import CompleteGuesser, {
   CompleteQuestion,
 } from '@/components/games/complete/CompleteGuesser';
-import { CompleterGame } from '@/types/games';
+import { CompleterGame, SeedInfo } from '@/types/games';
+import { getSeed } from '@/backendUtils';
+
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(() => getCompleterPossibilities(gp));
+}
+
+async function getCompleterPossibilities({
+  params,
+}: GameParams): Promise<CombinedCountry[]> {
+  return getCombinedCountries(params.selection, params.region);
+}
 
 interface PossibleQuestion {
   attribute: Attribute;
@@ -90,20 +104,20 @@ export default async function CompleterPage({
       );
   }
 
-  const combined: CombinedCountry[] = await getCombinedCountries(
-    params.selection,
-    params.region
+  const combined: CombinedCountry[] = await getCompleterPossibilities({
+    params,
+  });
+
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    CompleterGame.getCompleterSeededHref(params, newSeed)
   );
+
   const combinedCountries: CombinedCountry[] | undefined = getSolutions(
-    CompleterGame,
     {
       params: params,
     },
     combined,
-    {
-      knownAttributes: CompleterGame.encodeAttributes(knownAttributes),
-      guessAttributes: CompleterGame.encodeAttributes(guessAttributes),
-    }
+    seed
   );
 
   if (!combinedCountries) return <>Error! Could not get solutions</>;
@@ -123,6 +137,16 @@ export default async function CompleterPage({
       };
     });
 
+  const seedInfo: SeedInfo = {
+    seed: seed,
+    seedCount: combined.length,
+  };
+
+  const additionalDailyConfig: DailyGameAdditionalConfig = {
+    knownAttributes: CompleterGame.encodeAttributes(knownAttributes),
+    guessAttributes: CompleterGame.encodeAttributes(guessAttributes),
+  };
+
   return (
     <>
       <h1 className='text-center text-2xl'>
@@ -133,7 +157,9 @@ export default async function CompleterPage({
         <div className='m-10 max-w-xl'>
           <CompleteGuesser
             questions={completeQuestions}
-            gameConfig={{ params: params }}
+            gameConfig={params}
+            seedInfo={seedInfo}
+            additionalDailyConfig={additionalDailyConfig}
           />
         </div>
       </div>

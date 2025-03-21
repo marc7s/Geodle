@@ -41,7 +41,11 @@ const minigames: {
   {
     game: CompleterGame,
     hrefGenerator: (gp: GameParams) =>
-      CompleterGame.getCompleterHref(gp, ['flag'], ['name']),
+      CompleterGame.getCompleterHref({
+        ...gp.params,
+        knownAttributes: 'flag',
+        guessAttributes: 'name',
+      }),
   },
   {
     game: GeodleGame,
