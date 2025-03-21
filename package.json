@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "dotenv -e .env.dev -- next dev",
-    "prod": "npm run build",
+    "prod": "./build.sh",
     "build": "npm run generate-prod && dotenv -e .env.prod -- next build",
     "start": "next start",
     "lint": "next lint",
