@@ -2,6 +2,7 @@ import { City, Country, CountryPaths, Region } from '@prisma/client';
 import prisma from './db';
 import { GameRegion } from './types/routing/generated/regions';
 import { CountrySelection } from './types/routing/dynamicParams';
+import { cache } from 'react';
 
 export interface CombinedCountry {
   country: Country;
@@ -14,11 +15,13 @@ export interface CountryPath {
   paths: Country[][];
 }
 
-export async function getRegions(): Promise<Region[]> {
+export const getRegions = cache(getRegionsDB);
+async function getRegionsDB(): Promise<Region[]> {
   return await prisma.region.findMany();
 }
 
-export async function getCountryPaths(
+export const getCountryPaths = cache(getCountryPathsDB);
+async function getCountryPathsDB(
   selection: CountrySelection,
   region: GameRegion
 ): Promise<CountryPath[]> {
@@ -60,7 +63,8 @@ export async function getCountryPaths(
   );
 }
 
-export async function getCapitals(
+export const getCapitals = cache(getCapitalsDB);
+export async function getCapitalsDB(
   selection: CountrySelection,
   region: GameRegion
 ): Promise<City[]> {
@@ -79,7 +83,8 @@ export async function getCapitals(
   return capitals;
 }
 
-export async function getCountries(
+export const getCountries = cache(getCountriesDB);
+async function getCountriesDB(
   selection: CountrySelection,
   region: GameRegion
 ): Promise<Country[]> {
@@ -95,7 +100,8 @@ export async function getCountries(
   return countries;
 }
 
-export async function getCombinedCountries(
+export const getCombinedCountries = cache(getCombinedCountriesDB);
+async function getCombinedCountriesDB(
   selection: CountrySelection,
   region: GameRegion
 ): Promise<CombinedCountry[]> {
@@ -117,7 +123,8 @@ export async function getCombinedCountries(
   return combined;
 }
 
-export async function getCountryRegion(country: Country): Promise<Region> {
+export const getCountryRegion = cache(getCountryRegionDB);
+async function getCountryRegionDB(country: Country): Promise<Region> {
   const region = await prisma.region.findUnique({
     where: { id: country.regionId },
   });
