@@ -1,7 +1,8 @@
-import { CombinedCountry, getCapitals, getCombinedCountries } from '@/api';
+import { getCapitals, getCombinedCountries } from '@/api';
 import CityInfo from '@/components/CityInfo';
 import { createSlug, getStaticInfoIDParams } from '../../info';
 import { City } from '@prisma/client';
+import { CombinedCountry } from '@/db';
 
 export async function generateStaticParams() {
   const capitals = await getCapitals('all', 'World');

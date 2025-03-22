@@ -18,6 +18,7 @@ interface GameBase {
   linkName: string;
   description: string;
   allowedFeatures: readonly Feature[];
+  supportsDailyMode: boolean;
 }
 
 export interface SeedInfo {
@@ -34,6 +35,7 @@ export class Game {
   readonly allowedRegions: readonly GameRegion[] = gameRegions;
   readonly allowedSelections: readonly CountrySelection[] = countrySelections;
   readonly allowedFeatures: readonly Feature[];
+  readonly supportsDailyMode: boolean;
 
   // Get a random seed, out of the available ones
   protected getRandomSeed(seedInfo: SeedInfo): number {
@@ -58,6 +60,7 @@ export class Game {
     this.linkName = base.linkName;
     this.description = base.description;
     this.allowedFeatures = base.allowedFeatures;
+    this.supportsDailyMode = base.supportsDailyMode;
   }
 }
 
@@ -156,6 +159,7 @@ export const PointGuesserGame: Game = new Game({
   linkName: 'point-guesser',
   description: 'Guess the points marked in the map',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const CompleterGame: CompleterGameClass = new CompleterGameClass(
@@ -164,6 +168,7 @@ export const CompleterGame: CompleterGameClass = new CompleterGameClass(
     linkName: 'completer',
     description: 'Complete the missing information',
     allowedFeatures: features,
+    supportsDailyMode: true,
   },
   attributes,
   attributes
@@ -174,6 +179,7 @@ export const GeodleGame: Game = new Game({
   linkName: 'geodle',
   description: 'A Wordle variant, but you have to guess a country or capital',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const TrailGuesserGame: Game = new Game({
@@ -181,6 +187,7 @@ export const TrailGuesserGame: Game = new Game({
   linkName: 'trail-guesser',
   description: 'Every guess guides you toward the correct answer',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const PuzzleGuesserGame: Game = new Game({
@@ -188,6 +195,7 @@ export const PuzzleGuesserGame: Game = new Game({
   linkName: 'puzzle',
   description: 'Guess all missing puzzle pieces',
   allowedFeatures: features,
+  supportsDailyMode: false,
 });
 
 export const OutlinerGame: Game = new Game({
@@ -195,6 +203,7 @@ export const OutlinerGame: Game = new Game({
   linkName: 'outliner',
   description: 'Guess the answer based on its outline',
   allowedFeatures: ['countries'],
+  supportsDailyMode: true,
 });
 
 export const PatherGame: Game = new Game({
@@ -202,6 +211,7 @@ export const PatherGame: Game = new Game({
   linkName: 'pather',
   description: 'Guess the shortest path between countries',
   allowedFeatures: ['countries'],
+  supportsDailyMode: true,
 });
 
 export const games: Game[] = [

@@ -4,6 +4,7 @@ import { BoundingBox, viewport } from '@mapbox/geo-viewport';
 import { Country, City } from '@prisma/client';
 import { GameRegion, gameRegions } from './types/routing/generated/regions';
 import { GeoJsonData, GeoOutlineData } from './geoUtils';
+import { cache } from 'react';
 
 const geoDataBasePath: string = join(process.cwd(), 'src/data/generated/geo');
 
@@ -40,7 +41,8 @@ function getCenterAndZoomFromGeoJsonData(
   return [center.reverse() as [number, number], Math.min(zoom, 13)];
 }
 
-export function getCountryOutlineData(
+export const getCountryOutlineData = cache(getCountryOutlineDataUncached);
+function getCountryOutlineDataUncached(
   country: Country,
   minimized: boolean,
   errorOnMissing: boolean = false
@@ -86,7 +88,8 @@ export function getCityOutlineData(city: City): GeoOutlineData {
 }
 
 // Gets the GeoJsonData for the outline of a Region
-export function getRegionOutlineData(region: GameRegion): GeoJsonData[] {
+export const getRegionOutlineData = cache(getRegionOutlineDataUncached);
+function getRegionOutlineDataUncached(region: GameRegion): GeoJsonData[] {
   return (region === 'World' ? gameRegions : [region])
     .filter((r) => r !== 'World') // 'World' is not a region
     .map((r) => {

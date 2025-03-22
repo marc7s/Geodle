@@ -23,6 +23,8 @@ import { getSeed } from '@/backendUtils';
 export async function generateStaticParams(gp: GameParams) {
   return generateStaticSeedParams(
     () => getPuzzleGuesserPossibilities(gp),
+    PuzzleGuesserGame,
+    gp,
     true // Training has a single seed, and daily is not supported. So always generate a single seed
   );
 }

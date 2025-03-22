@@ -1,4 +1,4 @@
-import { getCountries } from '@/api';
+import { getCountriesDB } from '@/db';
 import { createConsoleProgressBar } from '@/backendUtils';
 import prisma from '@/db';
 import {
@@ -8,6 +8,7 @@ import {
 import { GameRegion, gameRegions } from '@/types/routing/generated/regions';
 import { Country } from '@prisma/client';
 import { Graph } from 'graph-data-structure';
+import { getRegionSolutionLimits } from '@/optimizations';
 
 export interface CountryPathSolution {
   c1: string;
@@ -31,9 +32,10 @@ function getPairID(country1: Country, country2: Country): PairID {
 async function generateSolutions(
   selection: CountrySelection,
   region: GameRegion,
-  minCountriesBetween: number
+  minCountriesBetween: number,
+  maxCountriesBetween: number
 ): Promise<CountryPathSolution[]> {
-  const countries: Country[] = await getCountries(selection, region);
+  const countries: Country[] = await getCountriesDB(selection, region);
   const solutionProgress = createConsoleProgressBar(
     `Generating solutions for ${selection} countries in ${region}`
   );
@@ -78,7 +80,13 @@ async function generateSolutions(
 
     // Note: all paths will be of the same lengths, as they are the shortest paths
     // If the shortest path is shorter than the minimum path length, we discard this solution
-    if (shortestPaths.some((path) => path.length - 2 < minCountriesBetween))
+    if (
+      shortestPaths.some(
+        (path) =>
+          path.length - 2 < minCountriesBetween ||
+          path.length - 2 > maxCountriesBetween
+      )
+    )
       return;
 
     const solution: CountryPathSolution = {
@@ -90,11 +98,16 @@ async function generateSolutions(
     solutions.set(pairID, solution);
   }
 
+  // Only allow countries part of the selection
+  // Otherwise, solutions would be generated that pass through countries outside the selection
+  const validIso3Codes = countries.map((c) => c.iso3Code);
+
   countries.forEach((country) => {
     // Get a list of all countries bordering the current one
     const borderingCountries = country.bordersISO3
       .split(',')
-      .filter((b) => b.length > 0);
+      .filter((b) => b.length > 0) // Remove countries with no bordering countries
+      .filter((b) => validIso3Codes.includes(b)); // Remove bordering countries outside the selection
 
     // Check if the country has any bordering countries
     if (borderingCountries.length < 1) return;
@@ -121,7 +134,14 @@ async function main() {
 
   for (const selection of countrySelections) {
     for (const region of gameRegions) {
-      const solutions = await generateSolutions(selection, region, 1);
+      const [minCountriesBetween, maxCountriesBetween] =
+        getRegionSolutionLimits(region);
+      const solutions = await generateSolutions(
+        selection,
+        region,
+        minCountriesBetween,
+        maxCountriesBetween
+      );
       solutionGroups.push({
         selection: selection,
         region: region,

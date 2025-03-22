@@ -12,7 +12,11 @@ import { getCountryOutlineData } from '@/geoBuildUtils';
 import { getSeed } from '@/backendUtils';
 
 export async function generateStaticParams(gp: GameParams) {
-  return generateStaticSeedParams(() => getOutlinerPossibilities(gp));
+  return generateStaticSeedParams(
+    () => getOutlinerPossibilities(gp),
+    OutlinerGame,
+    gp
+  );
 }
 
 async function getOutlinerPossibilities({

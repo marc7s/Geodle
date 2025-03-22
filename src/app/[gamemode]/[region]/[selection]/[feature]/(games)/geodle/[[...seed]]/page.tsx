@@ -11,7 +11,11 @@ import { GeodleGame, SeedInfo } from '@/types/games';
 import { getSeed } from '@/backendUtils';
 
 export async function generateStaticParams(gp: GameParams) {
-  return generateStaticSeedParams(() => getGeodlePossibilities(gp));
+  return generateStaticSeedParams(
+    () => getGeodlePossibilities(gp),
+    GeodleGame,
+    gp
+  );
 }
 
 async function getGeodlePossibilities({

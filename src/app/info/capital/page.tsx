@@ -1,7 +1,8 @@
-import { CombinedCountry, getCombinedCountries, getRegions } from '@/api';
+import { getCombinedCountries, getRegions } from '@/api';
 import { Region } from '@prisma/client';
 import Link from 'next/link';
 import { createSlug } from '../info';
+import { CombinedCountry } from '@/db';
 
 export default async function CountriesPage({
   params,

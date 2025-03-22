@@ -6,6 +6,7 @@ import { Feature, GameParams } from './types/routing/dynamicParams';
 import { createHash } from 'crypto';
 import { Game, SeedInfo } from './types/games';
 import { redirect } from 'next/navigation';
+import { OPT_DEBUG_DISABLE_GAME_SEED_GENERATION } from './optimizations';
 const unidecode = require('unidecode');
 
 export type DailyGameAdditionalConfig = { [key: string]: string };
@@ -123,6 +124,10 @@ export function handleSeedClientSide(
     redirect(seededHrefFunction(correctSeed));
   }
 }
+
+// A set to keep track of for which games the seeding disable message has been logged
+const seedingDisabledLogs: Set<string> = new Set();
+
 /**
  * Generates static parameters for dynamic routing, based on the possible values
  * @param possibilityFunction Function returning all possible values, from which the seed will decide the solution
@@ -130,11 +135,26 @@ export function handleSeedClientSide(
  */
 export async function generateStaticSeedParams<T>(
   possibilityFunction: () => Promise<T[]>,
+  game: Game,
+  { params }: GameParams,
   singleSeed: boolean = false
 ) {
-  const seedCount: number = singleSeed
-    ? 1
-    : (await possibilityFunction()).length;
+  // Do not generate pages for unsupported features
+  if (!game.allowedFeatures.includes(params.feature)) return [];
+
+  const debugDisableSeeding: boolean =
+    process.env.DEV_BUILD === '1' &&
+    OPT_DEBUG_DISABLE_GAME_SEED_GENERATION.includes(game.displayName);
+
+  if (debugDisableSeeding && !seedingDisabledLogs.has(game.displayName)) {
+    console.info(`\n!!! Disabled seeding for ${game.displayName} !!!`);
+    seedingDisabledLogs.add(game.displayName);
+  }
+
+  const seedCount: number =
+    singleSeed || debugDisableSeeding
+      ? 1
+      : (await possibilityFunction()).length;
   const seedParams = [...Array(seedCount + 1).keys()].map((seed) => {
     return {
       seed: [seed.toString()],

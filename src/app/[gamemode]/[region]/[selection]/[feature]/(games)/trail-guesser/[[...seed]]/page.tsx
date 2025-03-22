@@ -17,7 +17,11 @@ import { SeedInfo, TrailGuesserGame } from '@/types/games';
 import { getSeed } from '@/backendUtils';
 
 export async function generateStaticParams(gp: GameParams) {
-  return generateStaticSeedParams(() => getTrailGuesserPossibilities(gp));
+  return generateStaticSeedParams(
+    () => getTrailGuesserPossibilities(gp),
+    TrailGuesserGame,
+    gp
+  );
 }
 
 async function getTrailGuesserPossibilities({

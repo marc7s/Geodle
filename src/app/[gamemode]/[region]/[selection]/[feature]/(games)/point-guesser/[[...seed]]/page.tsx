@@ -24,6 +24,8 @@ import { getSeed } from '@/backendUtils';
 export async function generateStaticParams(gp: GameParams) {
   return generateStaticSeedParams(
     () => getPointGuesserPossibilities(gp),
+    PointGuesserGame,
+    gp,
     gp.params.gamemode === 'training'
   );
 }

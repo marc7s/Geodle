@@ -1,4 +1,4 @@
-import { CountryPath, getCountries, getCountryPaths } from '@/api';
+import { getCountries, getCountryPaths } from '@/api';
 import {
   MapConfig,
   MapDefaultConfigs,
@@ -12,37 +12,67 @@ import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
 import { getCountryOutlineData, getRegionOutlineData } from '@/geoBuildUtils';
 import Pather from '@/components/games/pather/Pather';
 import { getSeed } from '@/backendUtils';
+import { CountryPath } from '@/db';
+import { cache } from 'react';
+import {
+  OPT_PATHER_SKIP_EVERY_N_PATH,
+  OPT_PATHER_USE_BIDIRECTIONAL_PATHS,
+} from '@/optimizations';
 
 export interface PatherPiece {
   country: Country;
   outline: GeoOutlineData;
 }
 
+const getPatherPossibilitiesCached = cache(getPatherPossibilities);
+
 export async function generateStaticParams(gp: GameParams) {
-  return generateStaticSeedParams(() => getPatherPossibilities(gp));
+  return generateStaticSeedParams(
+    () => getPatherPossibilitiesCached(gp),
+    PatherGame,
+    gp
+  );
 }
 
 async function getPatherPossibilities({
   params,
 }: GameParams): Promise<CountryPath[]> {
   // Get all paths
-  const paths: CountryPath[] = await getCountryPaths(
+  const paths: CountryPath[] = (
+    await getCountryPaths(params.selection, params.region)
+  ).filter(
+    (_, i) =>
+      OPT_PATHER_SKIP_EVERY_N_PATH !== 0 &&
+      i % OPT_PATHER_SKIP_EVERY_N_PATH === 0
+  );
+
+  // Since the paths are bidirectional, we can double the number of possible paths by reversing each path
+  // This can be disabled for performance reasons, as it doubles the number of endpoints to build
+  if (OPT_PATHER_USE_BIDIRECTIONAL_PATHS)
+    paths.push(
+      ...paths.map((p) => {
+        return {
+          country1: p.country2,
+          country2: p.country1,
+          paths: p.paths.map((p) => p.reverse()),
+        };
+      })
+    );
+
+  return paths;
+}
+
+const getPatherPiecesCached = cache(getPatherPieces);
+async function getPatherPieces({ params }: GameParams): Promise<PatherPiece[]> {
+  const countries: Country[] = await getCountries(
     params.selection,
     params.region
   );
 
-  // Since the paths are bidirectional, we can double the number of possible paths by reversing each path
-  const directionalPaths: CountryPath[] = [
-    ...paths,
-    ...paths.map((p) => {
-      return {
-        country1: p.country2,
-        country2: p.country1,
-        paths: p.paths.map((p) => p.reverse()),
-      };
-    }),
-  ];
-  return directionalPaths;
+  // Create pieces for each country
+  return countries.map((c) => {
+    return { country: c, outline: getCountryOutlineData(c, true) };
+  });
 }
 
 export default async function PatherPage({ params }: GameParams) {
@@ -50,16 +80,12 @@ export default async function PatherPage({ params }: GameParams) {
     PatherGame.getSeededHref({ params: params }, newSeed)
   );
 
-  const config: GameParams = {
-    params: params,
-  };
-
   const mapConfig: MapConfig = {
     ...MapDefaultConfigs.GetConfig(params.region),
     maxZoom: 10,
   };
 
-  const pieces: PatherPiece[] = [];
+  let pieces: PatherPiece[] = [];
   const bestPieces: GeoOutlineData[] = [];
   const backgroundData: GeoJsonData[] = getRegionOutlineData(params.region);
 
@@ -68,23 +94,15 @@ export default async function PatherPage({ params }: GameParams) {
 
   switch (params.feature) {
     case 'countries':
-      const directionalPaths: CountryPath[] = await getPatherPossibilities({
-        params,
-      });
+      const directionalPaths: CountryPath[] =
+        await getPatherPossibilitiesCached({
+          params,
+        });
       solution = getSolution(directionalPaths, seed);
 
       if (!solution) return <>No solution found</>;
 
-      const countries: Country[] = await getCountries(
-        params.selection,
-        params.region
-      );
-
-      // Create pieces for each country
-      const countryPuzzlePieces: PatherPiece[] = countries.map((c) => {
-        return { country: c, outline: getCountryOutlineData(c, true) };
-      });
-      pieces.push(...countryPuzzlePieces);
+      pieces = await getPatherPiecesCached({ params });
 
       const shortestPathCountryPuzzlePieces: GeoOutlineData[] = solution.paths
         .map((cs) =>
@@ -130,7 +148,7 @@ export default async function PatherPage({ params }: GameParams) {
           )}
           bestOutlines={bestPieces}
           backgroundData={backgroundData}
-          gameConfig={config}
+          gameConfig={{ params }}
           mapConfig={mapConfig}
           seedInfo={seedInfo}
         />

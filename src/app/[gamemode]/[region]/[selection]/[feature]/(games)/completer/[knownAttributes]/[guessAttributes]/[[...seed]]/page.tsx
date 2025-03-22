@@ -7,7 +7,7 @@ import {
   prismaDecodeStringList,
 } from '@/utils';
 import { Question } from '@/components/QuestionTask';
-import { CombinedCountry, getCombinedCountries } from '@/api';
+import { getCombinedCountries } from '@/api';
 import {
   Attribute,
   CompleteGameParams,
@@ -19,9 +19,36 @@ import CompleteGuesser, {
 } from '@/components/games/complete/CompleteGuesser';
 import { CompleterGame, SeedInfo } from '@/types/games';
 import { getSeed } from '@/backendUtils';
+import { CombinedCountry } from '@/db';
+import { cache } from 'react';
 
-export async function generateStaticParams(gp: GameParams) {
-  return generateStaticSeedParams(() => getCompleterPossibilities(gp));
+const getCompleterPossibilitiesCached = cache(getCompleterPossibilities);
+
+// In training, there is only a single seed
+// The order of the array does not matter, as you have to guess them all
+// In daily mode, a single value is selected and so then the seed decides the solution
+export async function generateStaticParams({
+  params,
+}: {
+  params: CompleteGameParams;
+}) {
+  const gameParams: GameParams = CompleterGame.convertParams(params);
+  const knownAttrs: string[] = CompleterGame.decodeAttributes(
+    params.knownAttributes
+  );
+  const guessAttrs: string[] = CompleterGame.decodeAttributes(
+    params.guessAttributes
+  );
+
+  // Remove invalid combinations, where you are supposed to guess a known attribute
+  if (knownAttrs.some((knownAttr) => guessAttrs.includes(knownAttr))) return [];
+
+  return generateStaticSeedParams(
+    () => getCompleterPossibilitiesCached(gameParams),
+    CompleterGame,
+    gameParams,
+    params.gamemode === 'training'
+  );
 }
 
 async function getCompleterPossibilities({
@@ -94,17 +121,7 @@ export default async function CompleterPage({
     params.guessAttributes
   );
 
-  for (const guessAttribute of guessAttributes) {
-    if (knownAttributes.includes(guessAttribute))
-      return (
-        <>
-          Illegal combination! There must be no overlap between known and guess
-          attributes
-        </>
-      );
-  }
-
-  const combined: CombinedCountry[] = await getCompleterPossibilities({
+  const combined: CombinedCountry[] = await getCompleterPossibilitiesCached({
     params,
   });
 
@@ -139,7 +156,7 @@ export default async function CompleterPage({
 
   const seedInfo: SeedInfo = {
     seed: seed,
-    seedCount: combined.length,
+    seedCount: params.gamemode === 'training' ? 1 : combined.length,
   };
 
   const additionalDailyConfig: DailyGameAdditionalConfig = {
