@@ -26,3 +26,8 @@ export function getRegionSolutionLimits(region: GameRegion): [number, number] {
 //@ Only affects development builds, used to reduce build time or to investigate game build times
 //@ Add games to the list to reduce their build times by disabling seeding
 export const OPT_DEBUG_DISABLE_GAME_SEED_GENERATION: string[] = ['Completer'];
+
+// Optionally select a game to isolate the build to
+// This will not generate any pages for the other games (but still build the other pages that are not games)
+//@ Set to a game display name to only build that game
+export const OPT_DEBUG_ISOLATE_BUILD_TO_GAME: string | undefined = undefined;
