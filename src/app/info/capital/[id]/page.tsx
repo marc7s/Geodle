@@ -6,7 +6,6 @@ import { CombinedCountry } from '@/db';
 
 const capitalSlugGenerators: SlugGenerator<City>[] = [
   (city) => createSlug(city.englishName), // City english name
-  (city) => createSlug(city.id.toString()), // City ID
 ];
 
 export async function generateStaticParams() {

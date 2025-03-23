@@ -5,8 +5,6 @@ import { getStaticInfoIDParams, createSlug, SlugGenerator } from '../../info';
 
 const countrySlugGenerators: SlugGenerator<Country>[] = [
   (country) => createSlug(country.englishShortName), // Country short name
-  (country) => createSlug(country.englishLongName), // Country long name
-  (country) => createSlug(country.id.toString()), // Country ID
 ];
 
 export async function generateStaticParams() {
