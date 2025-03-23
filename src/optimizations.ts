@@ -5,7 +5,7 @@ export const OPT_PATHER_USE_BIDIRECTIONAL_PATHS: boolean = false;
 
 //@ Skip every Nth path to reduce the number of paths
 //@ Set to 0 to disable
-export const OPT_PATHER_SKIP_EVERY_N_PATH: number = 3;
+export const OPT_PATHER_SKIP_EVERY_N_PATH: number = 5;
 
 // Custom solution limits depending on the region
 // For smaller regions, include shorter paths
@@ -14,9 +14,9 @@ export const OPT_PATHER_SKIP_EVERY_N_PATH: number = 3;
 export function getRegionSolutionLimits(region: GameRegion): [number, number] {
   switch (region) {
     case 'World':
-      return [6, 10];
+      return [5, 8];
     default:
-      return [3, 20];
+      return [4, 7];
   }
 }
 
@@ -25,7 +25,7 @@ export function getRegionSolutionLimits(region: GameRegion): [number, number] {
 // This makes them a lot quicker to build, so you can focus on performance improvements of other games
 //@ Only affects development builds, used to reduce build time or to investigate game build times
 //@ Add games to the list to reduce their build times by disabling seeding
-export const OPT_DEBUG_DISABLE_GAME_SEED_GENERATION: string[] = ['Completer'];
+export const OPT_DEBUG_DISABLE_GAME_SEED_GENERATION: string[] = [];
 
 // Optionally select a game to isolate the build to
 // This will not generate any pages for the other games (but still build the other pages that are not games)

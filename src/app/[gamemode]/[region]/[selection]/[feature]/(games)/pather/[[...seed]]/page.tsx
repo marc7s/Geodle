@@ -30,7 +30,8 @@ export async function generateStaticParams(gp: GameParams) {
   return generateStaticSeedParams(
     () => getPatherPossibilitiesCached(gp),
     PatherGame,
-    gp
+    gp,
+    gp.params.selection !== 'independent'
   );
 }
 
@@ -63,16 +64,21 @@ async function getPatherPossibilities({
 }
 
 const getPatherPiecesCached = cache(getPatherPieces);
-async function getPatherPieces({ params }: GameParams): Promise<PatherPiece[]> {
+async function getPatherPieces(
+  { params }: GameParams,
+  excludeCountries: Country[]
+): Promise<PatherPiece[]> {
   const countries: Country[] = await getCountries(
     params.selection,
     params.region
   );
 
   // Create pieces for each country
-  return countries.map((c) => {
-    return { country: c, outline: getCountryOutlineData(c, true) };
-  });
+  return countries
+    .filter((c) => excludeCountries.every((ec) => ec.id !== c.id))
+    .map((c) => {
+      return { country: c, outline: getCountryOutlineData(c, true) };
+    });
 }
 
 export default async function PatherPage({ params }: GameParams) {
@@ -84,6 +90,9 @@ export default async function PatherPage({ params }: GameParams) {
     ...MapDefaultConfigs.GetConfig(params.region),
     maxZoom: 10,
   };
+
+  if (params.selection !== 'independent')
+    return <>Pather only supports the independent selection</>;
 
   let pieces: PatherPiece[] = [];
   const bestPieces: GeoOutlineData[] = [];
@@ -102,7 +111,10 @@ export default async function PatherPage({ params }: GameParams) {
 
       if (!solution) return <>No solution found</>;
 
-      pieces = await getPatherPiecesCached({ params });
+      pieces = await getPatherPiecesCached({ params }, [
+        solution.country1,
+        solution.country2,
+      ]);
 
       const shortestPathCountryPuzzlePieces: GeoOutlineData[] = solution.paths
         .map((cs) =>
@@ -140,12 +152,7 @@ export default async function PatherPage({ params }: GameParams) {
             getCountryOutlineData(solution.country1, true),
             getCountryOutlineData(solution.country2, true),
           ]}
-          possiblePieces={pieces.filter(
-            (p) =>
-              ![solution.country1.id, solution.country2.id].includes(
-                p.country.id
-              )
-          )}
+          possiblePieces={pieces}
           bestOutlines={bestPieces}
           backgroundData={backgroundData}
           gameConfig={{ params }}

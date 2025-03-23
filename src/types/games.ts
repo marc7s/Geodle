@@ -211,7 +211,7 @@ export const PatherGame: Game = new Game({
   linkName: 'pather',
   description: 'Guess the shortest path between countries',
   allowedFeatures: ['countries'],
-  supportsDailyMode: true,
+  supportsDailyMode: false,
 });
 
 export const games: Game[] = [
