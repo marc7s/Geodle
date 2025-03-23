@@ -1,28 +1,26 @@
 import { getCountries } from '@/api';
 import CountryInfo from '@/components/CountryInfo';
 import { Country } from '@prisma/client';
-import { getStaticInfoIDParams, createSlug } from '../../info';
+import { getStaticInfoIDParams, createSlug, SlugGenerator } from '../../info';
+
+const countrySlugGenerators: SlugGenerator<Country>[] = [
+  (country) => createSlug(country.englishShortName), // Country short name
+  (country) => createSlug(country.englishLongName), // Country long name
+  (country) => createSlug(country.id.toString()), // Country ID
+];
 
 export async function generateStaticParams() {
   const countries = await getCountries('all', 'World');
-  return getStaticInfoIDParams(countries, (c: Country) => [
-    c.id.toString(),
-    c.englishShortName,
-    c.englishLongName,
-  ]);
+  return getStaticInfoIDParams(countries, countrySlugGenerators);
 }
 
 async function getCountry(slug: string): Promise<Country | undefined> {
   const decodedSlug = decodeURIComponent(slug);
-  const countryID: number = Number.parseInt(decodedSlug) || -1;
-  const countryName: string | undefined = createSlug(decodedSlug);
+  const encodedSlug = createSlug(decodedSlug);
 
   const countries = await getCountries('all', 'World');
-  const country = countries.find(
-    (c) =>
-      c.id === countryID ||
-      createSlug(c.englishShortName) === countryName ||
-      createSlug(c.englishLongName) === countryName
+  const country = countries.find((c) =>
+    countrySlugGenerators.some((generator) => generator(c) === encodedSlug)
   );
 
   return country ?? undefined;
