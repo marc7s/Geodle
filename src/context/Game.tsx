@@ -134,6 +134,8 @@ export default function GameWrapper({
           (status.timeFinished ?? NaN) - (status.timeStarted ?? NaN)
         }
         onClose={resetGame}
+        game={gameWithParams?.game}
+        params={gameWithParams?.params}
       ></CompletedDialog>
     </>
   );

@@ -14,12 +14,12 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PuzzleGuesserGame } from '@/types/games';
+import { PatherGame, SeedInfo } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { countryBorders, MapConfig } from '@/utils';
+import { countryBorders, handleSeedClientSide, MapConfig } from '@/utils';
 import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
-import { PatherPiece } from '@/app/[gamemode]/[region]/[selection]/[feature]/(games)/pather/page';
+import { PatherPiece } from '@/app/[gamemode]/[region]/[selection]/[feature]/(games)/pather/[[...seed]]/page';
 import { Country } from '@prisma/client';
 
 interface Props {
@@ -35,6 +35,7 @@ interface Props {
   backgroundData: GeoJsonData[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
+  seedInfo: SeedInfo;
 }
 
 export default function Pather({
@@ -50,7 +51,17 @@ export default function Pather({
   backgroundData,
   gameConfig,
   mapConfig,
+  seedInfo,
 }: Props) {
+  handleSeedClientSide(
+    seedInfo,
+    PatherGame,
+    gameConfig,
+    {},
+    (newSeed: number) => PatherGame.getSeededHref(gameConfig, newSeed),
+    () => PatherGame.getRandomSeededHref(gameConfig, seedInfo)
+  );
+
   const singularFeature: string = formatSingularFeature(feature);
   const [guesses, setGuesses] = useState<GeoOutlineData[]>([]);
 
@@ -66,7 +77,7 @@ export default function Pather({
   const gameContext: GameContext = useGameContext();
   // Initialize the game
   useEffect(() => {
-    gameContext.init({ game: PuzzleGuesserGame, params: gameConfig });
+    gameContext.init({ game: PatherGame, params: gameConfig });
   }, [gameContext, gameConfig]);
 
   function handleQuestionStarted() {
@@ -183,6 +194,7 @@ export default function Pather({
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}
+        alreadyAnswered={guesses.map((g) => g.name)}
         allowGivingUp={false}
         isReusable={true}
       />

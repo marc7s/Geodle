@@ -87,7 +87,7 @@ async function main() {
   // There are so many cities that seeding them all in parallell causes the database to run out of memory
   // However, seeding them all in series is much slower
   // Therefore, split the cities into batches before inserting the batches in parallell
-  const batchSize: number = 10_000;
+  const batchSize: number = 7_500;
   const cityBatches: SeedCity[][] = [];
   let currBatch: SeedCity[] = [];
 

@@ -9,31 +9,59 @@ import { getCapitals, getCountries } from '@/api';
 import { PointInfo } from '@/components/MapPointGuesser';
 import {
   MapDefaultConfigs,
-  generateStaticFeatureParams,
+  generateStaticSeedParams,
   getSolutions,
 } from '@/utils';
 import { City, Country } from '@prisma/client';
 import styles from './styles.module.scss';
 import { GameParams, formatRegion } from '@/types/routing/dynamicParams';
-import { PointGuesserGame } from '@/types/games';
+import { PointGuesserGame, SeedInfo } from '@/types/games';
+import { getSeed } from '@/backendUtils';
 
-export async function generateStaticParams() {
-  return generateStaticFeatureParams(...PointGuesserGame.allowedFeatures);
+// In training, there is only a single seed
+// The order of the array does not matter, as you have to guess them all in any order
+// In daily mode, a single value is selected and so then the seed decides the solution
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(
+    () => getPointGuesserPossibilities(gp),
+    PointGuesserGame,
+    gp,
+    gp.params.gamemode === 'training'
+  );
+}
+
+async function getPointGuesserPossibilities({
+  params,
+}: GameParams): Promise<(Country | City)[]> {
+  switch (params.feature) {
+    case 'capitals':
+      return await getCapitals(params.selection, params.region);
+    case 'countries':
+      return await getCountries(params.selection, params.region);
+    default:
+      throw new Error('Invalid feature');
+  }
 }
 
 export default async function PointGuesserPage({ params }: GameParams) {
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    PointGuesserGame.getSeededHref({ params: params }, newSeed)
+  );
+
   const config = MapDefaultConfigs.GetConfig(params.region);
   const points: PointInfo[] = [];
 
+  const possibilities: (Country | City)[] = await getPointGuesserPossibilities({
+    params,
+  });
+
   switch (params.feature) {
     case 'capitals':
-      const cities = await getCapitals(params.selection, params.region);
+      const cities = possibilities as City[];
       const guessCities: City[] | undefined = getSolutions(
-        PointGuesserGame,
-        {
-          params: params,
-        },
-        cities
+        { params },
+        cities,
+        seed
       );
       if (!guessCities) return <>Error! Could not get solutions</>;
       const cityPoints: PointInfo[] = guessCities.map((c) => {
@@ -49,13 +77,11 @@ export default async function PointGuesserPage({ params }: GameParams) {
       points.push(...cityPoints);
       break;
     case 'countries':
-      const countries = await getCountries(params.selection, params.region);
+      const countries = possibilities as Country[];
       const guessCountries: Country[] | undefined = getSolutions(
-        PointGuesserGame,
-        {
-          params: params,
-        },
-        countries
+        { params },
+        countries,
+        seed
       );
       if (!guessCountries) return <>Error! Could not get solutions</>;
       const countryPoints: PointInfo[] = guessCountries.map((c) => {
@@ -74,6 +100,11 @@ export default async function PointGuesserPage({ params }: GameParams) {
       break;
   }
 
+  const seedInfo: SeedInfo = {
+    seed: seed,
+    seedCount: params.gamemode === 'training' ? 1 : possibilities.length,
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.titleSection}>
@@ -83,9 +114,10 @@ export default async function PointGuesserPage({ params }: GameParams) {
       </div>
       <div>
         <MapPointGuesser
-          points={points}
+          pointInfos={points}
           config={config}
           gameConfig={{ params: params }}
+          seedInfo={seedInfo}
           style={'HideAll'}
         />
       </div>

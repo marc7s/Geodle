@@ -1,20 +1,35 @@
 import { getCountries } from '@/api';
-import { generateStaticFeatureParams, getSolution } from '@/utils';
+import { generateStaticSeedParams, getSolution } from '@/utils';
 import { Country } from '@prisma/client';
 import {
   GameParams,
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
-import { OutlinerGame } from '@/types/games';
+import { OutlinerGame, SeedInfo } from '@/types/games';
 import { GeoOutlineData } from '@/geoUtils';
 import Outliner from '@/components/games/outliner/Outliner';
 import { getCountryOutlineData } from '@/geoBuildUtils';
+import { getSeed } from '@/backendUtils';
 
-export async function generateStaticParams() {
-  return generateStaticFeatureParams(...OutlinerGame.allowedFeatures);
+export async function generateStaticParams(gp: GameParams) {
+  return generateStaticSeedParams(
+    () => getOutlinerPossibilities(gp),
+    OutlinerGame,
+    gp
+  );
+}
+
+async function getOutlinerPossibilities({
+  params,
+}: GameParams): Promise<Country[]> {
+  return await getCountries(params.selection, params.region);
 }
 
 export default async function OutlinerPage({ params }: GameParams) {
+  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
+    OutlinerGame.getSeededHref({ params: params }, newSeed)
+  );
+
   const config: GameParams = {
     params: params,
   };
@@ -22,6 +37,7 @@ export default async function OutlinerPage({ params }: GameParams) {
   const singularFeature: string = formatSingularFeature(params.feature);
 
   let solution: GeoOutlineData | undefined = undefined;
+  let seedInfo: SeedInfo | undefined = undefined;
   const possibleGuesses: string[] = [];
 
   switch (params.feature) {
@@ -30,14 +46,14 @@ export default async function OutlinerPage({ params }: GameParams) {
         params.selection,
         params.region
       );
-      const correctCountry: Country | undefined = getSolution(
-        OutlinerGame,
-        config,
-        countries
-      );
+      const correctCountry: Country | undefined = getSolution(countries, seed);
       if (!correctCountry) return <>Error! Could not generate the solution</>;
       solution = getCountryOutlineData(correctCountry, false, false);
       possibleGuesses.push(...countries.map((c) => c.englishShortName));
+      seedInfo = {
+        seed: seed,
+        seedCount: countries.length,
+      };
       break;
     case 'capitals':
       return <>Outliner does not support capitals</>;
@@ -57,6 +73,7 @@ export default async function OutlinerPage({ params }: GameParams) {
             position: solution.center,
             zoom: solution.zoomLevelToFit,
           }}
+          seedInfo={seedInfo}
         />
       )}
     </>

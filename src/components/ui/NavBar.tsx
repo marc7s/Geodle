@@ -3,12 +3,10 @@
 import {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
@@ -30,8 +28,7 @@ import React from 'react';
 const minigames: {
   game: Game;
   hrefGenerator: (_: GameParams) => string;
-  preferredFeature?: Feature;
-  noDaily?: boolean;
+  preferredFeature: Feature;
 }[] = [
   {
     game: PointGuesserGame,
@@ -41,28 +38,37 @@ const minigames: {
   {
     game: CompleterGame,
     hrefGenerator: (gp: GameParams) =>
-      CompleterGame.getCompleterHref(gp, ['flag'], ['name']),
+      CompleterGame.getCompleterHref({
+        ...gp.params,
+        knownAttributes: 'flag',
+        guessAttributes: 'name',
+      }),
+    preferredFeature: 'countries',
   },
   {
     game: GeodleGame,
     hrefGenerator: (gp: GameParams) => GeodleGame.getHref(gp),
+    preferredFeature: 'countries',
   },
   {
     game: TrailGuesserGame,
     hrefGenerator: (gp: GameParams) => TrailGuesserGame.getHref(gp),
+    preferredFeature: 'countries',
   },
   {
     game: PuzzleGuesserGame,
     hrefGenerator: (gp: GameParams) => PuzzleGuesserGame.getHref(gp),
-    noDaily: true,
+    preferredFeature: 'countries',
   },
   {
     game: OutlinerGame,
     hrefGenerator: (gp: GameParams) => OutlinerGame.getHref(gp),
+    preferredFeature: 'countries',
   },
   {
     game: PatherGame,
     hrefGenerator: (gp: GameParams) => PatherGame.getHref(gp),
+    preferredFeature: 'countries',
   },
 ];
 
@@ -109,7 +115,7 @@ export default function NavBar() {
                 </NavigationMenuLink>
               </li>
               {minigames
-                .filter((m) => m.noDaily !== true)
+                .filter((m) => m.game.supportsDailyMode)
                 .map((minigame) => (
                   <ListItem
                     key={minigame.game.displayName}
@@ -119,7 +125,7 @@ export default function NavBar() {
                         gamemode: 'daily',
                         region: 'World',
                         selection: 'independent',
-                        feature: minigame.preferredFeature ?? 'countries',
+                        feature: minigame.preferredFeature,
                       },
                     })}
                   >
@@ -142,7 +148,7 @@ export default function NavBar() {
                       gamemode: 'training',
                       region: 'World',
                       selection: 'independent',
-                      feature: minigame.preferredFeature ?? 'countries',
+                      feature: minigame.preferredFeature,
                     },
                   })}
                 >

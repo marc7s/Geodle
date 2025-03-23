@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "dotenv -e .env.dev -- next dev",
-    "prod": "./build.sh",
+    "prod": "./build.sh build",
     "build": "npm run generate-prod && dotenv -e .env.prod -- next build",
+    "build-dev": "./build.sh build-dev-impl",
+    "build-dev-impl": "npm run generate-prod && dotenv -e .env.prod -v DEV_BUILD=1 -- next build",
     "start": "next start",
     "lint": "next lint",
     "deploy-dev": "dotenv -e .env.dev -- npx prisma db push --force-reset && dotenv -e .env.dev -- npx prisma db seed && dotenv -e .env.dev -- tsx generateCountryGraph.ts && npm run generate-dev",
@@ -14,7 +16,8 @@
     "generate-dev": "dotenv -e .env.dev -- npx prisma generate && dotenv -e .env.dev -- npm run generate-value-types",
     "generate-prod": "dotenv -e .env.prod -- npm run generate-value-types",
     "generate-value-types": "tsx prisma/generators/*.ts",
-    "generate-geojson": "tsx generateGeoJson.ts"
+    "generate-geojson": "tsx generateGeoJson.ts",
+    "generate-dev-country-graph": "dotenv -e .env.dev -- tsx generateCountryGraph.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

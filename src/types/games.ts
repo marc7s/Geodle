@@ -1,6 +1,7 @@
 import { getAllParamCombinations } from '@/utils';
 import {
   Attribute,
+  CompleteGameParams,
   CountrySelection,
   Feature,
   GameMode,
@@ -17,6 +18,12 @@ interface GameBase {
   linkName: string;
   description: string;
   allowedFeatures: readonly Feature[];
+  supportsDailyMode: boolean;
+}
+
+export interface SeedInfo {
+  seed: number;
+  seedCount: number;
 }
 
 export class Game {
@@ -28,9 +35,24 @@ export class Game {
   readonly allowedRegions: readonly GameRegion[] = gameRegions;
   readonly allowedSelections: readonly CountrySelection[] = countrySelections;
   readonly allowedFeatures: readonly Feature[];
+  readonly supportsDailyMode: boolean;
+
+  // Get a random seed, out of the available ones
+  protected getRandomSeed(seedInfo: SeedInfo): number {
+    return Math.floor(Math.random() * seedInfo.seedCount) + 1;
+  }
 
   getHref({ params }: GameParams): string {
     return `/${params.gamemode}/${params.region}/${params.selection}/${params.feature}/${this.linkName}`;
+  }
+
+  getSeededHref({ params }: GameParams, seed: number | undefined): string {
+    const seedSlug: string = (seed ?? 0).toString();
+    return `${this.getHref({ params })}/${seedSlug}`;
+  }
+
+  getRandomSeededHref({ params }: GameParams, seedInfo: SeedInfo): string {
+    return this.getSeededHref({ params }, this.getRandomSeed(seedInfo));
   }
 
   constructor(base: GameBase) {
@@ -38,6 +60,7 @@ export class Game {
     this.linkName = base.linkName;
     this.description = base.description;
     this.allowedFeatures = base.allowedFeatures;
+    this.supportsDailyMode = base.supportsDailyMode;
   }
 }
 
@@ -47,7 +70,7 @@ class CompleterGameClass extends Game {
   readonly knownAttributeCombinations: Map<Attribute[], string>;
   readonly guessAttributeCombinations: Map<Attribute[], string>;
 
-  private separator: string = '&';
+  public readonly separator: string = '&';
 
   encodeAttributes(attributes: string[]): string {
     return attributes.join(this.separator);
@@ -57,17 +80,58 @@ class CompleterGameClass extends Game {
     return decodeURIComponent(attributes).split(this.separator);
   }
 
-  // We need more information to be able to generate the href, so we override the base method and make it throw an error if used
+  convertParams(completeParams: CompleteGameParams): GameParams {
+    return {
+      params: {
+        gamemode: completeParams.gamemode,
+        region: completeParams.region,
+        selection: completeParams.selection,
+        feature: completeParams.feature,
+        seed: completeParams.seed,
+      },
+    };
+  }
+
+  // *** We need more information to be able to generate the href, so we override the base method and make it throw an error if used ***
   getHref(_: GameParams): string {
     throw new Error('Do not call this, call getCompleterHref() instead');
   }
 
-  getCompleterHref(
-    gameParams: GameParams,
-    knownAttributes: Attribute[],
-    guessAttributes: Attribute[]
+  getSeededHref(_: GameParams, __: number | undefined): string {
+    throw new Error('Do not call this, call getCompleterSeededHref() instead');
+  }
+
+  getRandomSeededHref(_: GameParams, __: SeedInfo): string {
+    throw new Error(
+      'Do not call this, call getCompleterRandomSeededHref() instead'
+    );
+  }
+  // ******
+
+  getCompleterHref(params: CompleteGameParams): string {
+    const knownAttributes: Attribute[] = params.knownAttributes.split(
+      this.separator
+    ) as Attribute[];
+    const guessAttributes: Attribute[] = params.guessAttributes.split(
+      this.separator
+    ) as Attribute[];
+    return `${super.getHref(this.convertParams(params))}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
+  }
+
+  getCompleterSeededHref(
+    params: CompleteGameParams,
+    seed: number | undefined
   ): string {
-    return `${super.getHref(gameParams)}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
+    const seedSlug: string = (seed ?? 0).toString();
+
+    return `${this.getCompleterHref(params)}/${seedSlug}`;
+  }
+
+  getCompleterRandomSeededHref(
+    params: CompleteGameParams,
+    seedInfo: SeedInfo
+  ): string {
+    return this.getCompleterSeededHref(params, this.getRandomSeed(seedInfo));
   }
 
   constructor(
@@ -95,6 +159,7 @@ export const PointGuesserGame: Game = new Game({
   linkName: 'point-guesser',
   description: 'Guess the points marked in the map',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const CompleterGame: CompleterGameClass = new CompleterGameClass(
@@ -103,6 +168,7 @@ export const CompleterGame: CompleterGameClass = new CompleterGameClass(
     linkName: 'completer',
     description: 'Complete the missing information',
     allowedFeatures: features,
+    supportsDailyMode: true,
   },
   attributes,
   attributes
@@ -113,6 +179,7 @@ export const GeodleGame: Game = new Game({
   linkName: 'geodle',
   description: 'A Wordle variant, but you have to guess a country or capital',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const TrailGuesserGame: Game = new Game({
@@ -120,6 +187,7 @@ export const TrailGuesserGame: Game = new Game({
   linkName: 'trail-guesser',
   description: 'Every guess guides you toward the correct answer',
   allowedFeatures: features,
+  supportsDailyMode: true,
 });
 
 export const PuzzleGuesserGame: Game = new Game({
@@ -127,6 +195,7 @@ export const PuzzleGuesserGame: Game = new Game({
   linkName: 'puzzle',
   description: 'Guess all missing puzzle pieces',
   allowedFeatures: features,
+  supportsDailyMode: false,
 });
 
 export const OutlinerGame: Game = new Game({
@@ -134,6 +203,7 @@ export const OutlinerGame: Game = new Game({
   linkName: 'outliner',
   description: 'Guess the answer based on its outline',
   allowedFeatures: ['countries'],
+  supportsDailyMode: true,
 });
 
 export const PatherGame: Game = new Game({
@@ -141,6 +211,7 @@ export const PatherGame: Game = new Game({
   linkName: 'pather',
   description: 'Guess the shortest path between countries',
   allowedFeatures: ['countries'],
+  supportsDailyMode: false,
 });
 
 export const games: Game[] = [

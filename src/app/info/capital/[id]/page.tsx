@@ -1,29 +1,30 @@
-import { CombinedCountry, getCapitals, getCombinedCountries } from '@/api';
+import { getCapitals, getCombinedCountries } from '@/api';
 import CityInfo from '@/components/CityInfo';
-import { createSlug, getStaticInfoIDParams } from '../../info';
+import { createSlug, getStaticInfoIDParams, SlugGenerator } from '../../info';
 import { City } from '@prisma/client';
+import { CombinedCountry } from '@/db';
+
+const capitalSlugGenerators: SlugGenerator<City>[] = [
+  (city) => createSlug(city.englishName), // City english name
+];
 
 export async function generateStaticParams() {
   const capitals = await getCapitals('all', 'World');
-  return getStaticInfoIDParams(capitals, (c: City) => [
-    c.id.toString(),
-    c.englishName,
-  ]);
+  return getStaticInfoIDParams(capitals, capitalSlugGenerators);
 }
 
 async function getCombinedCountryFromCapital(
   slug: string
 ): Promise<CombinedCountry | undefined> {
   const decodedSlug = decodeURIComponent(slug);
-  const capitalID: number = Number.parseInt(decodedSlug) || -1;
-  const capitalName: string | undefined = createSlug(decodedSlug);
+  const encodedSlug = createSlug(decodedSlug);
 
   const combinedCountries = await getCombinedCountries('all', 'World');
 
-  const capital = combinedCountries.find(
-    (cc) =>
-      cc.capital.id === capitalID ||
-      createSlug(cc.capital.englishName) === capitalName
+  const capital = combinedCountries.find((cc) =>
+    capitalSlugGenerators.some(
+      (generator) => generator(cc.capital) === encodedSlug
+    )
   );
 
   return capital ?? undefined;
