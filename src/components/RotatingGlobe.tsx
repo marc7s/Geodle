@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
-import countries from '@/data/globe.json';
+import countries from '@/data/globe.json' with { type: 'json' };
 import { Position } from './ui/globe';
 
 const World = dynamic(() => import('./ui/globe').then((m) => m.World), {
