@@ -14,7 +14,7 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PatherGame, PuzzleGuesserGame, SeedInfo } from '@/types/games';
+import { PatherGame, SeedInfo } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { countryBorders, handleSeedClientSide, MapConfig } from '@/utils';
@@ -77,7 +77,7 @@ export default function Pather({
   const gameContext: GameContext = useGameContext();
   // Initialize the game
   useEffect(() => {
-    gameContext.init({ game: PuzzleGuesserGame, params: gameConfig });
+    gameContext.init({ game: PatherGame, params: gameConfig });
   }, [gameContext, gameConfig]);
 
   function handleQuestionStarted() {

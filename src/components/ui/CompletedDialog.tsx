@@ -16,6 +16,8 @@ import {
   FinishedGameStatusSingleWithTries,
 } from '@/context/Game';
 import { getFormattedElapsedTime } from '@/format';
+import { Game } from '@/types/games';
+import { GameParams } from '@/types/routing/dynamicParams';
 
 export interface DialogAction {
   title: string;
@@ -110,6 +112,8 @@ interface Props {
   timeElapsedMS: number;
   actions: DialogAction[];
   onClose: () => void;
+  game: Game | undefined;
+  params: GameParams | undefined;
 }
 export default function CompletedDialog(props: Props) {
   return (
@@ -131,6 +135,15 @@ export default function CompletedDialog(props: Props) {
                 {a.title}
               </AlertDialogAction>
             ))}
+            {props.game &&
+              props.params &&
+              props.params.params.gamemode === 'training' && (
+                <AlertDialogAction>
+                  <a href={props.game.getSeededHref(props.params, 0)}>
+                    Play next
+                  </a>
+                </AlertDialogAction>
+              )}
           </AlertDialogFooter>
         </AlertDialogContent>
       ) : (
