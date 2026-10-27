@@ -1,61 +1,21 @@
 import {
   DailyGameAdditionalConfig,
-  generateStaticSeedParams,
   getFlagURL,
   getSetValues,
-  getSolutions,
   prismaDecodeStringList,
 } from '@/utils';
 import { Question } from '@/components/QuestionTask';
 import { getCombinedCountries } from '@/api';
 import {
   Attribute,
-  CompleteGameParams,
+  CompleteGamePageProps,
   formatRegion,
-  GameParams,
 } from '@/types/routing/dynamicParams';
 import CompleteGuesser, {
   CompleteQuestion,
 } from '@/components/games/complete/CompleteGuesser';
-import { CompleterGame, SeedInfo } from '@/types/games';
-import { getSeed } from '@/backendUtils';
+import { CompleterGame } from '@/types/games';
 import { CombinedCountry } from '@/db';
-import { cache } from 'react';
-
-const getCompleterPossibilitiesCached = cache(getCompleterPossibilities);
-
-// In training, there is only a single seed
-// The order of the array does not matter, as you have to guess them all
-// In daily mode, a single value is selected and so then the seed decides the solution
-export async function generateStaticParams({
-  params,
-}: {
-  params: CompleteGameParams;
-}) {
-  const gameParams: GameParams = CompleterGame.convertParams(params);
-  const knownAttrs: string[] = CompleterGame.decodeAttributes(
-    params.knownAttributes
-  );
-  const guessAttrs: string[] = CompleterGame.decodeAttributes(
-    params.guessAttributes
-  );
-
-  // Remove invalid combinations, where you are supposed to guess a known attribute
-  if (knownAttrs.some((knownAttr) => guessAttrs.includes(knownAttr))) return [];
-
-  return generateStaticSeedParams(
-    () => getCompleterPossibilitiesCached(gameParams),
-    CompleterGame,
-    gameParams,
-    params.gamemode === 'training'
-  );
-}
-
-async function getCompleterPossibilities({
-  params,
-}: GameParams): Promise<CombinedCountry[]> {
-  return getCombinedCountries(params.selection, params.region);
-}
 
 interface PossibleQuestion {
   attribute: Attribute;
@@ -109,11 +69,8 @@ function possibleToQuestion(possibleQuestion: PossibleQuestion): Question {
   };
 }
 
-export default async function CompleterPage({
-  params,
-}: {
-  params: CompleteGameParams;
-}) {
+export default async function CompleterPage(props: CompleteGamePageProps) {
+  const params = await props.params;
   const knownAttributes: string[] = CompleterGame.decodeAttributes(
     params.knownAttributes
   );
@@ -121,23 +78,14 @@ export default async function CompleterPage({
     params.guessAttributes
   );
 
-  const combined: CombinedCountry[] = await getCompleterPossibilitiesCached({
-    params,
-  });
-
-  const seed: number = getSeed({ params }, (newSeed: number | undefined) =>
-    CompleterGame.getCompleterSeededHref(params, newSeed)
+  // The client picks the questions, based on the seed
+  // In training, all questions are asked in a random order. In daily mode, the seed picks a single question
+  const combinedCountries: CombinedCountry[] = await getCombinedCountries(
+    params.selection,
+    params.region
   );
 
-  const combinedCountries: CombinedCountry[] | undefined = getSolutions(
-    {
-      params: params,
-    },
-    combined,
-    seed
-  );
-
-  if (!combinedCountries) return <>Error! Could not get solutions</>;
+  if (combinedCountries.length < 1) return <>Error! Could not get solutions</>;
 
   const completeQuestions: CompleteQuestion[] = combinedCountries
     .map((c) =>
@@ -154,11 +102,6 @@ export default async function CompleterPage({
       };
     });
 
-  const seedInfo: SeedInfo = {
-    seed: seed,
-    seedCount: params.gamemode === 'training' ? 1 : combined.length,
-  };
-
   const additionalDailyConfig: DailyGameAdditionalConfig = {
     knownAttributes: CompleterGame.encodeAttributes(knownAttributes),
     guessAttributes: CompleterGame.encodeAttributes(guessAttributes),
@@ -173,9 +116,8 @@ export default async function CompleterPage({
       <div className='flex flex-col justify-center items-center'>
         <div className='m-10 max-w-xl'>
           <CompleteGuesser
-            questions={completeQuestions}
+            possibleQuestions={completeQuestions}
             gameConfig={params}
-            seedInfo={seedInfo}
             additionalDailyConfig={additionalDailyConfig}
           />
         </div>

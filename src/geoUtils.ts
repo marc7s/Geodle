@@ -12,10 +12,16 @@ export interface GeoVector2 {
 }
 
 export type GeoJsonData = object;
+
+// Where to get GeoJSON data from: either embedded directly (for small data such as points),
+// or a URL to a static file that the client loads when needed (see `useGeoJson`).
+// Large outlines are served as files, so they are not embedded in every page that uses them
+export type GeoJsonSource = { data: GeoJsonData } | { url: string };
+
 export interface GeoOutlineData {
   name: string;
   answers: string[];
-  outline: GeoJsonData;
+  outline: GeoJsonSource;
   center: Point;
   zoomLevelToFit: number;
   guessed?: boolean;

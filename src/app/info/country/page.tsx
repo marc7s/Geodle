@@ -3,11 +3,7 @@ import { Country, Region } from '@prisma/client';
 import Link from 'next/link';
 import { createSlug } from '../info';
 
-export default async function CountriesPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function CountriesPage() {
   const countries: Country[] = await getCountries('all', 'World');
   const regions: Region[] = await getRegions();
   const countriesByRegion: { region: Region; countries: Country[] }[] = [];

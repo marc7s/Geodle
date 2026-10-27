@@ -59,28 +59,24 @@ The data is processed before being imported. The processing includes modifying c
 ## Setup
 
 1. Install the `Prettier` VS Code extension
-2. Setup a Microsoft SQL Server instance with an admin user, as Prisma needs to modify the database during deployment
-3. Create a `.env.dev` and `.env.prod` environment file and fill them in according to the example files
-4. Install Mapshaper globally with `npm i -g mapshaper`
+2. Create a `.env.dev` and `.env.prod` environment file by copying the example files. The database is a local SQLite file (`prisma/dev.db` and `prisma/prod.db`), so no database server is needed
 
 ## Prisma
 
-Prisma is used as it allows easily creating the data structures through a schema, which then both generates the necessary tables and relationships, and also generates the corresponding types. This automated type generation is the main reason it is used, as it is very convenient to have have access to the correct types in Next.js. Note that the way it is setup is completely deviant from how Prisma is meant to be used and its best practices, as migrations are not used in this project. Instead, the database is completely dropped, before being reinserted with all the data. The reason for this is that the one source of truth in this case is not the database, but the datasets. These CSV files could be updated externally, and the state of the database should reflect these datasets. Clearing the database is safe in this circumstance, since it is seeded with all the data from the datasets in the seeding step.
+Prisma is used with SQLite, as it allows easily creating the data structures through a schema, which then both generates the necessary tables and relationships, and also generates the corresponding types. This automated type generation is the main reason it is used, as it is very convenient to have have access to the correct types in Next.js. Note that the way it is setup is completely deviant from how Prisma is meant to be used and its best practices, as migrations are not used in this project. Instead, the database is completely dropped, before being reinserted with all the data. The reason for this is that the one source of truth in this case is not the database, but the datasets. These CSV files could be updated externally, and the state of the database should reflect these datasets. Clearing the database is safe in this circumstance, since it is seeded with all the data from the datasets in the seeding step.
 
 ## Deployment
 
 ### Dev
 
-1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
-2. Run `npm run deploy-dev` if you need to deploy the database
-3. Run `npm run generate-dev` if you need to regenerate the types
-4. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
-5. Build the application with the `DevDockerfile`
+1. Run `npm run deploy-dev` if you need to deploy the database
+2. Run `npm run generate-dev` if you need to regenerate the types
+3. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
+4. Build the application with the `DevDockerfile`
 
 ### Prod
 
-1. Setup your SQL Express database with the correct credentials. Note that the database user needs to be an administrator for Prisma to be able to migrate
-2. Run `npm run deploy-prod` if you need to deploy the database
-3. Run `npm run generate-prod` if you need to regenerate the types
-4. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
-5. Build the application with the `ProdDockerfile`
+1. Run `npm run deploy-prod` if you need to deploy the database
+2. Run `npm run generate-prod` if you need to regenerate the types
+3. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
+4. Build the application with the `ProdDockerfile`. The database file in `prisma/` is copied into the image, so deploy the database before building

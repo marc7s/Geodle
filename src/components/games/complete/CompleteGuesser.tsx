@@ -7,8 +7,9 @@ import { useGameContext } from '@/context/Game';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { Button } from '@/components/ui/button';
 import { CompleteGameParams } from '@/types/routing/dynamicParams';
-import { CompleterGame, SeedInfo } from '@/types/games';
-import { DailyGameAdditionalConfig, handleSeedClientSide } from '@/utils';
+import { CompleterGame } from '@/types/games';
+import { DailyGameAdditionalConfig, getSolutions } from '@/utils';
+import { useSeed } from '@/components/useSeed';
 
 export interface CompleteQuestion {
   knownQuestions: Question[];
@@ -17,27 +18,35 @@ export interface CompleteQuestion {
 }
 
 interface Props {
-  questions: CompleteQuestion[];
+  possibleQuestions: CompleteQuestion[];
   gameConfig: CompleteGameParams;
-  seedInfo: SeedInfo;
   additionalDailyConfig: DailyGameAdditionalConfig;
 }
 
-export default function CompleteGuesser({
+// Picks the questions, based on the seed
+// In training, all questions are asked in a random order, so there is only a single seed
+// In daily mode, the seed picks a single question
+export default function CompleteGuesser({ possibleQuestions, ...props }: Props) {
+  const gameParams = CompleterGame.convertParams(props.gameConfig);
+  const seedCount: number =
+    props.gameConfig.gamemode === 'training' ? 1 : possibleQuestions.length;
+  const seed: number | undefined = useSeed(
+    CompleterGame,
+    gameParams,
+    seedCount,
+    props.additionalDailyConfig
+  );
+  if (seed === undefined) return <></>;
+
+  const questions: CompleteQuestion[] =
+    getSolutions(gameParams, [...possibleQuestions], seed) ?? [];
+  return <CompleteGuesserBoard key={seed} {...props} questions={questions} />;
+}
+
+function CompleteGuesserBoard({
   questions,
   gameConfig,
-  seedInfo,
-  additionalDailyConfig,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    CompleterGame,
-    { params: gameConfig },
-    additionalDailyConfig,
-    (newSeed: number) =>
-      CompleterGame.getCompleterSeededHref(gameConfig, newSeed),
-    () => CompleterGame.getCompleterRandomSeededHref(gameConfig, seedInfo)
-  );
+}: Omit<Props, 'possibleQuestions'> & { questions: CompleteQuestion[] }) {
 
   const gameContext = useGameContext();
   useEffect(() => {

@@ -2,12 +2,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from 'three';
 import ThreeGlobe from 'three-globe';
-import { useThree, Object3DNode, Canvas, extend } from '@react-three/fiber';
+import { useThree, ThreeElement, Canvas, extend } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import countries from '@/data/globe.json' with { type: 'json' };
 declare module '@react-three/fiber' {
   interface ThreeElements {
-    threeGlobe: Object3DNode<ThreeGlobe, typeof ThreeGlobe>;
+    threeGlobe: ThreeElement<typeof ThreeGlobe>;
   }
 }
 
@@ -186,13 +186,6 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .arcDashInitialGap((e) => (e as { order: number }).order * 1)
       .arcDashGap(15)
       .arcDashAnimateTime((e) => defaultProps.arcTime);
-
-    globeRef.current
-      .pointsData(data)
-      .pointColor((e) => (e as { color: string }).color)
-      .pointsMerge(true)
-      .pointAltitude(0.0)
-      .pointRadius(2);
 
     globeRef.current
       .ringsData([])

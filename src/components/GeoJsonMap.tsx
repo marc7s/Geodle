@@ -55,7 +55,7 @@ function renderGeoJsonData(
   dataList: GeoJsonDataWithColor[],
   style: DataListStyle,
   highlightOnHover: boolean
-): JSX.Element[] {
+): React.JSX.Element[] {
   const defaultStyle = {
     strokeWidth: '1',
     r: '10',

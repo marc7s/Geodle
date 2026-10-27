@@ -22,8 +22,9 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { SeedInfo, TrailGuesserGame } from '@/types/games';
-import { handleSeedClientSide } from '@/utils';
+import { TrailGuesserGame } from '@/types/games';
+import { getSolution } from '@/utils';
+import { useSeed } from '@/components/useSeed';
 
 export interface TrailFeature {
   point: GeoPoint;
@@ -41,28 +42,38 @@ interface Props {
   feature: Feature;
   allowedGuesses: number;
   dropdownFeatures: TrailFeature[];
-  correctFeature: TrailFeature;
+  // Indices into `dropdownFeatures` of the features that can be the solution
+  possibleIndices: number[];
   gameConfig: GameParams;
-  seedInfo: SeedInfo;
 }
 
-export default function TrailGuesser({
+// Picks the solution from the possible features, based on the seed
+export default function TrailGuesser(props: Props) {
+  const seed: number | undefined = useSeed(
+    TrailGuesserGame,
+    props.gameConfig,
+    props.possibleIndices.length
+  );
+  if (seed === undefined) return <></>;
+
+  const correctIndex: number = getSolution([...props.possibleIndices], seed)!;
+  return (
+    <TrailGuesserGameBoard
+      key={seed}
+      {...props}
+      correctFeature={props.dropdownFeatures[correctIndex]}
+    />
+  );
+}
+
+function TrailGuesserGameBoard({
   title,
   feature,
   allowedGuesses,
   dropdownFeatures,
   correctFeature,
   gameConfig,
-  seedInfo,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    TrailGuesserGame,
-    gameConfig,
-    {},
-    (newSeed: number) => TrailGuesserGame.getSeededHref(gameConfig, newSeed),
-    () => TrailGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
+}: Props & { correctFeature: TrailFeature }) {
 
   const [guesses, setGuesses] = useState<FeatureGuess[]>([]);
   const singularFeature: string = formatSingularFeature(feature);
@@ -148,7 +159,7 @@ export default function TrailGuesser({
     const possibleGuessIndices: number[] = Array.from(
       Array(allowedGuesses).keys()
     );
-    const guessList: JSX.Element[] = possibleGuessIndices.map((i) => {
+    const guessList: React.JSX.Element[] = possibleGuessIndices.map((i) => {
       const guess: FeatureGuess | undefined = guesses.at(i);
       const isCorrect: boolean = guess?.guessedFeature === correctFeature;
       return (

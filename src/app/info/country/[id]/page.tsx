@@ -24,11 +24,10 @@ async function getCountry(slug: string): Promise<Country | undefined> {
   return country ?? undefined;
 }
 
-export default async function CountryPage({
-  params,
-}: {
-  params: { id: string };
+export default async function CountryPage(props: {
+  params: Promise<{ id: string }>;
 }) {
+  const params = await props.params;
   const country: Country | undefined = await getCountry(params.id);
   return (
     <div className='flex flex-col items-center'>

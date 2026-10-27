@@ -14,31 +14,54 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PatherGame, SeedInfo } from '@/types/games';
+import { PatherGame } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { countryBorders, handleSeedClientSide, MapConfig } from '@/utils';
-import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
-import { PatherPiece } from '@/app/[gamemode]/[region]/[selection]/[feature]/(games)/pather/[[...seed]]/page';
-import { Country } from '@prisma/client';
+import { countryBorders, MapConfig } from '@/utils';
+import { useSeed } from '@/components/useSeed';
+import { GeoJsonSource, GeoOutlineData } from '@/geoUtils';
+import { onlyLoaded, useGeoJson } from '@/components/useGeoJson';
+import {
+  getPatherSolution,
+  PatherCountry,
+  PatherPath,
+  PatherPiece,
+  PatherSolution,
+} from './patherSolution';
+
+export type { PatherCountry, PatherPath, PatherPiece };
 
 interface Props {
-  title: string;
   feature: Feature;
-  allowedGuesses: number;
-  startCountry: Country;
-  endCountry: Country;
-  oneBestSolution: string[];
-  solutionOutlines: GeoOutlineData[];
-  possiblePieces: PatherPiece[];
-  bestOutlines: GeoOutlineData[];
-  backgroundData: GeoJsonData[];
+  possiblePaths: PatherPath[];
+  // All countries in the region
+  pieces: PatherPiece[];
+  backgroundData: GeoJsonSource[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
-  seedInfo: SeedInfo;
 }
 
-export default function Pather({
+// Picks the path to guess, based on the seed
+export default function Pather({ possiblePaths, pieces, ...props }: Props) {
+  const seed: number | undefined = useSeed(
+    PatherGame,
+    props.gameConfig,
+    possiblePaths.length
+  );
+  if (seed === undefined) return <></>;
+
+  return (
+    <PatherGameBoard
+      key={seed}
+      {...props}
+      {...getPatherSolution(possiblePaths, pieces, seed)}
+    />
+  );
+}
+
+type BoardProps = Omit<Props, 'possiblePaths' | 'pieces'> & PatherSolution;
+
+function PatherGameBoard({
   title,
   feature,
   allowedGuesses,
@@ -51,19 +74,12 @@ export default function Pather({
   backgroundData,
   gameConfig,
   mapConfig,
-  seedInfo,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    PatherGame,
-    gameConfig,
-    {},
-    (newSeed: number) => PatherGame.getSeededHref(gameConfig, newSeed),
-    () => PatherGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
-
+}: BoardProps) {
   const singularFeature: string = formatSingularFeature(feature);
   const [guesses, setGuesses] = useState<GeoOutlineData[]>([]);
+  const solutionGeoJson = useGeoJson(solutionOutlines.map((s) => s.outline));
+  const guessGeoJson = useGeoJson(guesses.map((g) => g.outline));
+  const backgroundGeoJson = onlyLoaded(useGeoJson(backgroundData));
 
   const question: Question = {
     question: `Guess the name of any missing ${singularFeature} on the path`,
@@ -86,7 +102,7 @@ export default function Pather({
 
   useEffect(() => {
     const guessedNames: string[] = guesses.map((g) => g.name);
-    const guessedCountries: Country[] = possiblePieces
+    const guessedCountries: PatherCountry[] = possiblePieces
       .filter((p) => guessedNames.includes(p.country.englishShortName))
       .map((p) => p.country);
 
@@ -127,13 +143,13 @@ export default function Pather({
   }
 
   function solutionExists(
-    sourceCountry: Country,
-    targetCountry: Country,
-    intermediateCountries: Country[]
+    sourceCountry: PatherCountry,
+    targetCountry: PatherCountry,
+    intermediateCountries: PatherCountry[]
   ): boolean {
     if (countryBorders(sourceCountry, targetCountry)) return true;
-    const borderingCountries: Country[] = intermediateCountries.filter((c) =>
-      countryBorders(c, sourceCountry)
+    const borderingCountries: PatherCountry[] = intermediateCountries.filter(
+      (c) => countryBorders(c, sourceCountry)
     );
 
     for (const newSource of borderingCountries) {
@@ -159,12 +175,14 @@ export default function Pather({
         width={800}
         isStatic={false}
         dataList={[
-          ...solutionOutlines.map((s) => {
-            return { ...s.outline, color: 'orange' };
+          ...onlyLoaded(solutionGeoJson).map((outline) => {
+            return { ...outline, color: 'orange' };
           }),
-          ...guesses.map((p) => {
+          ...guesses.flatMap((p, i) => {
+            const outline = guessGeoJson[i];
+            if (!outline) return [];
             return {
-              ...p.outline,
+              ...outline,
               color: bestOutlines.map((d) => d.name).includes(p.name)
                 ? bestOutlineColor
                 : possiblePieces
@@ -188,7 +206,7 @@ export default function Pather({
             };
           }),
         ]}
-        backgroundDataList={backgroundData}
+        backgroundDataList={backgroundGeoJson}
       />
       <QuestionTask
         question={question}

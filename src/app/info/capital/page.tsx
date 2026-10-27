@@ -1,19 +1,16 @@
 import { getCombinedCountries, getRegions } from '@/api';
 import { Region } from '@prisma/client';
 import Link from 'next/link';
-import { createSlug } from '../info';
+import { getCapitalSlugs } from '../info';
 import { CombinedCountry } from '@/db';
 
-export default async function CountriesPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function CountriesPage() {
   const combinedCountries: CombinedCountry[] = await getCombinedCountries(
     'all',
     'World'
   );
   const regions: Region[] = await getRegions();
+  const capitalSlugs: Map<number, string> = getCapitalSlugs(combinedCountries);
   const combinedByRegion: { region: Region; combined: CombinedCountry[] }[] =
     [];
 
@@ -42,7 +39,7 @@ export default async function CountriesPage({
                 {cr.combined.map((c) => (
                   <li key={c.capital.id}>
                     <Link
-                      href={`/info/capital/${createSlug(c.capital.englishName)}`}
+                      href={`/info/capital/${capitalSlugs.get(c.capital.id)}`}
                     >
                       {c.capital.englishName}, {c.country.englishShortName}
                     </Link>

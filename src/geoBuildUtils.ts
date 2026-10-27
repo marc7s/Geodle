@@ -3,10 +3,13 @@ import { join } from 'path';
 import { BoundingBox, viewport } from '@mapbox/geo-viewport';
 import { Country, City } from '@prisma/client';
 import { GameRegion, gameRegions } from './types/routing/generated/regions';
-import { GeoJsonData, GeoOutlineData } from './geoUtils';
-import { cache } from 'react';
+import { GeoJsonData, GeoJsonSource, GeoOutlineData } from './geoUtils';
 
-const geoDataBasePath: string = join(process.cwd(), 'src/data/generated/geo');
+// The GeoJSON files are generated into `public`, so they are served as static files
+// Pages only reference them by URL, and the client loads the ones it needs.
+// This avoids embedding the (large) outlines into every page, which would otherwise make up most of the build output
+export const geoDataUrlBase: string = '/generated/geo';
+const geoDataBasePath: string = join(process.cwd(), 'public', geoDataUrlBase);
 
 const countryOutlinePaths: string[] = readdirSync(
   join(geoDataBasePath, 'countries')
@@ -41,7 +44,27 @@ function getCenterAndZoomFromGeoJsonData(
   return [center.reverse() as [number, number], Math.min(zoom, 13)];
 }
 
-export const getCountryOutlineData = cache(getCountryOutlineDataUncached);
+// Outlines are computed once per process, instead of once per page
+// The build renders thousands of pages that reuse the same outlines, and React's `cache()` only lasts for a single page render
+const countryOutlineCache: Map<string, GeoOutlineData> = new Map();
+export function getCountryOutlineData(
+  country: Country,
+  minimized: boolean,
+  errorOnMissing: boolean = false
+): GeoOutlineData {
+  const key: string = `${country.iso2Code}|${minimized}|${errorOnMissing}`;
+  let outlineData: GeoOutlineData | undefined = countryOutlineCache.get(key);
+  if (!outlineData) {
+    outlineData = getCountryOutlineDataUncached(
+      country,
+      minimized,
+      errorOnMissing
+    );
+    countryOutlineCache.set(key, outlineData);
+  }
+  return outlineData;
+}
+
 function getCountryOutlineDataUncached(
   country: Country,
   minimized: boolean,
@@ -57,7 +80,8 @@ function getCountryOutlineDataUncached(
       `Could not find country outline for ${country.englishShortName}`
     );
 
-  // Return the parsed data if it exists, otherwise create a point for the country
+  // Reference the file if it exists, otherwise create a point for the country
+  // The file is still read here, to calculate the center and zoom level
   const countryOutline: GeoJsonData = countryOutlinePath
     ? JSON.parse(
         readFileSync(
@@ -65,13 +89,16 @@ function getCountryOutlineDataUncached(
         ).toString()
       )
     : createPointOutline(country.lat, country.long);
+  const outlineSource: GeoJsonSource = countryOutlinePath
+    ? { url: `${geoDataUrlBase}/countries/${countryOutlinePath}` }
+    : { data: countryOutline };
 
   const [center, zoom] = getCenterAndZoomFromGeoJsonData(countryOutline);
 
   return {
     name: country.englishShortName,
     answers: [country.englishShortName],
-    outline: countryOutline,
+    outline: outlineSource,
     center: center,
     zoomLevelToFit: zoom,
   };
@@ -81,15 +108,14 @@ export function getCityOutlineData(city: City): GeoOutlineData {
   return {
     name: city.englishName,
     answers: [city.englishName],
-    outline: createPointOutline(city.lat, city.long),
+    outline: { data: createPointOutline(city.lat, city.long) },
     center: [city.lat, city.long],
     zoomLevelToFit: 10,
   };
 }
 
-// Gets the GeoJsonData for the outline of a Region
-export const getRegionOutlineData = cache(getRegionOutlineDataUncached);
-function getRegionOutlineDataUncached(region: GameRegion): GeoJsonData[] {
+// Gets the GeoJSON sources for the outline of a Region
+export function getRegionOutlineData(region: GameRegion): GeoJsonSource[] {
   return (region === 'World' ? gameRegions : [region])
     .filter((r) => r !== 'World') // 'World' is not a region
     .map((r) => {
@@ -98,10 +124,6 @@ function getRegionOutlineDataUncached(region: GameRegion): GeoJsonData[] {
       );
       if (!regionOutlinePath)
         throw new Error(`Could not find region outline for ${r}`);
-      return JSON.parse(
-        readFileSync(
-          join(geoDataBasePath, 'regions', regionOutlinePath)
-        ).toString()
-      );
+      return { url: `${geoDataUrlBase}/regions/${regionOutlinePath}` };
     });
 }

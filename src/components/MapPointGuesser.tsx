@@ -1,7 +1,8 @@
 'use client';
 
 import { Colors } from '@/colors';
-import { handleSeedClientSide, MapConfig } from '@/utils';
+import { getSolutions, MapConfig } from '@/utils';
+import { useSeed } from '@/components/useSeed';
 import { Map, Marker, Overlay, Point } from 'pigeon-maps';
 import styles from './MapPointGuesser.module.scss';
 import { useCallback, useEffect, useState } from 'react';
@@ -11,7 +12,7 @@ import { isMobile } from 'react-device-detect';
 import { Progress } from '@/components/ui/progress';
 import GiveUpDialog from './ui/GiveUpDialog';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PointGuesserGame, SeedInfo } from '@/types/games';
+import { PointGuesserGame } from '@/types/games';
 import {
   GameParams,
   formatSingularFeature,
@@ -31,30 +32,38 @@ export interface PointInfo {
 }
 
 interface Props {
-  pointInfos: PointInfo[];
+  possiblePoints: PointInfo[];
   config: MapConfig;
   style: MapStyle;
   gameConfig: GameParams;
-  seedInfo: SeedInfo;
   markerWidth?: number;
 }
 
-export default function MapPointGuesser({
+// Picks the points to guess, based on the seed
+// In training, all points are guessed in a random order, so there is only a single seed
+// In daily mode, the seed picks a single point
+export default function MapPointGuesser({ possiblePoints, ...props }: Props) {
+  const seedCount: number =
+    props.gameConfig.params.gamemode === 'training' ? 1 : possiblePoints.length;
+  const seed: number | undefined = useSeed(
+    PointGuesserGame,
+    props.gameConfig,
+    seedCount
+  );
+  if (seed === undefined) return <></>;
+
+  const pointInfos: PointInfo[] =
+    getSolutions(props.gameConfig, [...possiblePoints], seed) ?? [];
+  return <MapPointGuesserBoard key={seed} {...props} pointInfos={pointInfos} />;
+}
+
+function MapPointGuesserBoard({
   pointInfos,
   config,
   style,
   gameConfig,
-  seedInfo,
   markerWidth,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    PointGuesserGame,
-    gameConfig,
-    {},
-    (newSeed: number) => PointGuesserGame.getSeededHref(gameConfig, newSeed),
-    () => PointGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
+}: Omit<Props, 'possiblePoints'> & { pointInfos: PointInfo[] }) {
 
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();

@@ -18,6 +18,7 @@ import {
 import { getFormattedElapsedTime } from '@/format';
 import { Game } from '@/types/games';
 import { GameParams } from '@/types/routing/dynamicParams';
+import { usePathname } from 'next/navigation';
 
 export interface DialogAction {
   title: string;
@@ -27,7 +28,7 @@ export interface DialogAction {
 function guessThemAllContent(
   finishedStatus: FinishedGameStatusGuessThemAll,
   timeElapsedMS: number
-): JSX.Element {
+): React.JSX.Element {
   const correct: number =
     finishedStatus.totalQuestions - finishedStatus.missedAnswers.length;
   const total: number = finishedStatus.totalQuestions;
@@ -74,7 +75,7 @@ function guessThemAllContent(
 function singleWithTriesContent(
   finishedStatus: FinishedGameStatusSingleWithTries,
   timeElapsedMS: number
-): JSX.Element {
+): React.JSX.Element {
   const description: string = finishedStatus.succeeded
     ? 'You got the answer!'
     : `Better luck next time!\nThe correct answer was: ${finishedStatus.correctAnswer}`;
@@ -97,7 +98,7 @@ function singleWithTriesContent(
 function renderContent(
   finishedGameStatus: FinishedGameStatus,
   timeElapsedMS: number
-): JSX.Element {
+): React.JSX.Element {
   if ('singleWithTries' in finishedGameStatus) {
     return singleWithTriesContent(finishedGameStatus, timeElapsedMS);
   } else if ('guessThemAll' in finishedGameStatus) {
@@ -116,14 +117,17 @@ interface Props {
   params: GameParams | undefined;
 }
 export default function CompletedDialog(props: Props) {
+  // The page without a seed, so the game picks a new random one
+  const pathname: string = usePathname();
+
   return (
     <AlertDialog open={props.finishedStatus !== undefined}>
       {props.finishedStatus ? (
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {props.title ??
-              (props.finishedStatus.gaveUp || !props.finishedStatus.succeeded)
+              {(props.title ??
+              (props.finishedStatus.gaveUp || !props.finishedStatus.succeeded))
                 ? 'Nice try!'
                 : 'All done!'}
             </AlertDialogTitle>
@@ -139,7 +143,7 @@ export default function CompletedDialog(props: Props) {
               props.params &&
               props.params.params.gamemode === 'training' && (
                 <AlertDialogAction>
-                  <a href={props.game.getSeededHref(props.params, 0)}>
+                  <a href={pathname}>
                     Play next
                   </a>
                 </AlertDialogAction>

@@ -21,11 +21,6 @@ interface GameBase {
   supportsDailyMode: boolean;
 }
 
-export interface SeedInfo {
-  seed: number;
-  seedCount: number;
-}
-
 export class Game {
   readonly displayName: string;
   readonly linkName: string;
@@ -37,22 +32,8 @@ export class Game {
   readonly allowedFeatures: readonly Feature[];
   readonly supportsDailyMode: boolean;
 
-  // Get a random seed, out of the available ones
-  protected getRandomSeed(seedInfo: SeedInfo): number {
-    return Math.floor(Math.random() * seedInfo.seedCount) + 1;
-  }
-
   getHref({ params }: GameParams): string {
     return `/${params.gamemode}/${params.region}/${params.selection}/${params.feature}/${this.linkName}`;
-  }
-
-  getSeededHref({ params }: GameParams, seed: number | undefined): string {
-    const seedSlug: string = (seed ?? 0).toString();
-    return `${this.getHref({ params })}/${seedSlug}`;
-  }
-
-  getRandomSeededHref({ params }: GameParams, seedInfo: SeedInfo): string {
-    return this.getSeededHref({ params }, this.getRandomSeed(seedInfo));
   }
 
   constructor(base: GameBase) {
@@ -87,26 +68,14 @@ class CompleterGameClass extends Game {
         region: completeParams.region,
         selection: completeParams.selection,
         feature: completeParams.feature,
-        seed: completeParams.seed,
       },
     };
   }
 
-  // *** We need more information to be able to generate the href, so we override the base method and make it throw an error if used ***
+  // We need more information to be able to generate the href, so we override the base method and make it throw an error if used
   getHref(_: GameParams): string {
     throw new Error('Do not call this, call getCompleterHref() instead');
   }
-
-  getSeededHref(_: GameParams, __: number | undefined): string {
-    throw new Error('Do not call this, call getCompleterSeededHref() instead');
-  }
-
-  getRandomSeededHref(_: GameParams, __: SeedInfo): string {
-    throw new Error(
-      'Do not call this, call getCompleterRandomSeededHref() instead'
-    );
-  }
-  // ******
 
   getCompleterHref(params: CompleteGameParams): string {
     const knownAttributes: Attribute[] = params.knownAttributes.split(
@@ -116,22 +85,6 @@ class CompleterGameClass extends Game {
       this.separator
     ) as Attribute[];
     return `${super.getHref(this.convertParams(params))}/${knownAttributes.sort().join(this.separator)}/${guessAttributes.sort().join(this.separator)}`;
-  }
-
-  getCompleterSeededHref(
-    params: CompleteGameParams,
-    seed: number | undefined
-  ): string {
-    const seedSlug: string = (seed ?? 0).toString();
-
-    return `${this.getCompleterHref(params)}/${seedSlug}`;
-  }
-
-  getCompleterRandomSeededHref(
-    params: CompleteGameParams,
-    seedInfo: SeedInfo
-  ): string {
-    return this.getCompleterSeededHref(params, this.getRandomSeed(seedInfo));
   }
 
   constructor(

@@ -46,7 +46,7 @@ export function RotatingGlobe() {
     pointSize: 4,
     globeColor: '#c2a778',
     showAtmosphere: true,
-    atmosphereColor: 'rgba(255, 255, 255, 0.5)',
+    atmosphereColor: '#ffffff', // Three.js colors have no alpha channel
     atmosphereAltitude: 0.2,
     emissive: '#c2a778',
     emissiveIntensity: 0.2,

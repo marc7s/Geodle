@@ -19,7 +19,8 @@ const regionComplements: Map<GameRegion, string[]> = new Map([
 ]);
 
 // Output directories
-const outputDir: string = join(process.cwd(), 'src/data/generated/geo');
+// Generated into `public` so the files are served statically, and loaded by the client when needed
+const outputDir: string = join(process.cwd(), 'public/generated/geo');
 const countriesOutputDir: string = join(outputDir, 'countries');
 const regionsOutputDir: string = join(outputDir, 'regions');
 

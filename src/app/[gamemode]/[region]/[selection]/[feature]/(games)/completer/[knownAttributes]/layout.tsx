@@ -1,10 +1,15 @@
 import { CompleterGame } from '@/types/games';
 
 // Generate allowed known values
+// Combinations with every attribute are skipped, since there would be nothing left to guess
 export async function generateStaticParams() {
-  return [...CompleterGame.knownAttributeCombinations.values()].map((a) => {
-    return { knownAttributes: a };
-  });
+  return [...CompleterGame.knownAttributeCombinations.entries()]
+    .filter(([known]) =>
+      CompleterGame.allowedGuessAttributes.some((a) => !known.includes(a))
+    )
+    .map(([, a]) => {
+      return { knownAttributes: a };
+    });
 }
 
 export default function Layout({

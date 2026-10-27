@@ -34,7 +34,7 @@ export default prisma;
 if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma;
 
 export async function getRegionsDB(): Promise<Region[]> {
-  return await prisma.region.findMany();
+  return await prisma.region.findMany({ orderBy: { id: 'asc' } });
 }
 
 export async function getCountryPathsDB(
@@ -46,6 +46,8 @@ export async function getCountryPathsDB(
       selection: selection,
       region: region,
     },
+    // Explicit order, since the seeds depend on it. This matches the order of the unique index
+    orderBy: { path: 'asc' },
   });
   const countries: Country[] = await getCountriesDB(selection, region);
   const countryCache: Map<string, Country> = new Map();
@@ -99,6 +101,7 @@ export async function getCapitalsDB(
         isIndependent: selection === 'independent' ? true : undefined,
       },
     },
+    orderBy: { id: 'asc' },
   });
   return capitals;
 }
@@ -114,6 +117,7 @@ export async function getCountriesDB(
       },
       isIndependent: selection === 'independent' ? true : undefined,
     },
+    orderBy: { id: 'asc' },
   });
   return countries;
 }

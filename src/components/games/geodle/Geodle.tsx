@@ -6,9 +6,10 @@ import { Keyboard } from './Keyboard';
 import { toast } from 'sonner';
 import { useGameContext } from '@/context/Game';
 import { GameParams } from '@/types/routing/dynamicParams';
-import { GeodleGame, SeedInfo } from '@/types/games';
+import { GeodleGame } from '@/types/games';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { handleSeedClientSide } from '@/utils';
+import { getSolution } from '@/utils';
+import { useSeed } from '@/components/useSeed';
 
 interface CursorPosition {
   x: number;
@@ -30,28 +31,31 @@ interface State {
 
 interface Props {
   title: string;
-  correct: string;
   allowedGuessCount: number;
   allowedGuesses: string[];
   gameConfig: GameParams;
-  seedInfo: SeedInfo;
 }
-export default function Geodle({
+
+// Picks the solution from the allowed guesses, based on the seed
+export default function Geodle(props: Props) {
+  const seed: number | undefined = useSeed(
+    GeodleGame,
+    props.gameConfig,
+    props.allowedGuesses.length
+  );
+  if (seed === undefined) return <></>;
+
+  const correct: string = getSolution([...props.allowedGuesses], seed)!;
+  return <GeodleBoard key={`${seed}-${correct}`} {...props} correct={correct} />;
+}
+
+function GeodleBoard({
   title,
   correct,
   allowedGuessCount,
   allowedGuesses,
   gameConfig,
-  seedInfo,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    GeodleGame,
-    gameConfig,
-    {},
-    (newSeed: number) => GeodleGame.getSeededHref(gameConfig, newSeed),
-    () => GeodleGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
+}: Props & { correct: string }) {
 
   const gameContext = useGameContext();
   // Initialize the game

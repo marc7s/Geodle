@@ -14,44 +14,61 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { OutlinerGame, PuzzleGuesserGame, SeedInfo } from '@/types/games';
+import { OutlinerGame } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { handleSeedClientSide, MapConfig } from '@/utils';
+import { getSolution } from '@/utils';
+import { useSeed } from '@/components/useSeed';
 import { GeoOutlineData } from '@/geoUtils';
+import { onlyLoaded, useGeoJson } from '@/components/useGeoJson';
 
 interface Props {
   title: string;
   feature: Feature;
   allowedGuesses: number;
-  answer: GeoOutlineData;
-  possibleAnswers: string[];
+  possibleSolutions: GeoOutlineData[];
   gameConfig: GameParams;
-  mapConfig: MapConfig;
-  seedInfo: SeedInfo;
 }
 
-export default function Outliner({
+// Picks the solution from the possible solutions, based on the seed
+export default function Outliner(props: Props) {
+  const seed: number | undefined = useSeed(
+    OutlinerGame,
+    props.gameConfig,
+    props.possibleSolutions.length
+  );
+  if (seed === undefined) return <></>;
+
+  const answer: GeoOutlineData = getSolution(
+    [...props.possibleSolutions],
+    seed
+  )!;
+  return (
+    <OutlinerGameBoard
+      key={seed}
+      {...props}
+      answer={answer}
+      possibleAnswers={props.possibleSolutions.map((s) => s.name)}
+    />
+  );
+}
+
+function OutlinerGameBoard({
   title,
   feature,
   allowedGuesses,
   answer,
   possibleAnswers,
   gameConfig,
-  mapConfig,
-  seedInfo,
-}: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    OutlinerGame,
-    gameConfig,
-    {},
-    (newSeed: number) => OutlinerGame.getSeededHref(gameConfig, newSeed),
-    () => OutlinerGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
+}: Props & { answer: GeoOutlineData; possibleAnswers: string[] }) {
+  const mapConfig = {
+    position: answer.center,
+    zoom: answer.zoomLevelToFit,
+  };
 
   const singularFeature: string = formatSingularFeature(feature);
   const [guesses, setGuesses] = useState<string[]>([]);
+  const answerOutline = onlyLoaded(useGeoJson([answer.outline]));
 
   const question: Question = {
     question: `Guess the ${singularFeature} based on its outline`,
@@ -61,7 +78,7 @@ export default function Outliner({
   const gameContext: GameContext = useGameContext();
   // Initialize the game
   useEffect(() => {
-    gameContext.init({ game: PuzzleGuesserGame, params: gameConfig });
+    gameContext.init({ game: OutlinerGame, params: gameConfig });
   }, [gameContext, gameConfig]);
 
   function handleQuestionStarted() {
@@ -109,7 +126,7 @@ export default function Outliner({
         height={800}
         width={800}
         isStatic={true}
-        dataList={[answer.outline]}
+        dataList={answerOutline}
         backgroundDataList={[]}
         highlightOnHover={false}
       />

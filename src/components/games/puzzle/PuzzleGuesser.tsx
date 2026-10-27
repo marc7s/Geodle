@@ -14,20 +14,20 @@ import {
   formatSingularFeature,
 } from '@/types/routing/dynamicParams';
 import { GameContext, useGameContext } from '@/context/Game';
-import { PuzzleGuesserGame, SeedInfo } from '@/types/games';
+import { PuzzleGuesserGame } from '@/types/games';
 import QuestionTask, { Question } from '@/components/QuestionTask';
 import GiveUpDialog from '@/components/ui/GiveUpDialog';
-import { handleSeedClientSide, MapConfig } from '@/utils';
-import { GeoJsonData, GeoOutlineData } from '@/geoUtils';
+import { arrayShuffle, MapConfig } from '@/utils';
+import { GeoJsonSource, GeoOutlineData } from '@/geoUtils';
+import { onlyLoaded, useGeoJson } from '@/components/useGeoJson';
 
 interface Props {
   title: string;
   feature: Feature;
   puzzlePieces: GeoOutlineData[];
-  backgroundData: GeoJsonData[];
+  backgroundData: GeoJsonSource[];
   gameConfig: GameParams;
   mapConfig: MapConfig;
-  seedInfo: SeedInfo;
 }
 
 export default function PuzzleGuesser({
@@ -37,19 +37,16 @@ export default function PuzzleGuesser({
   backgroundData,
   gameConfig,
   mapConfig,
-  seedInfo,
 }: Props) {
-  handleSeedClientSide(
-    seedInfo,
-    PuzzleGuesserGame,
-    gameConfig,
-    {},
-    (newSeed: number) => PuzzleGuesserGame.getSeededHref(gameConfig, newSeed),
-    () => PuzzleGuesserGame.getRandomSeededHref(gameConfig, seedInfo)
-  );
-
   const singularFeature: string = formatSingularFeature(feature);
-  const [pieces, setPieces] = useState<GeoOutlineData[]>(puzzlePieces);
+  // All pieces are guessed, in a random order. There is no daily mode, so no seed is needed
+  const [pieces, setPieces] = useState<GeoOutlineData[]>(() =>
+    arrayShuffle([...puzzlePieces])
+  );
+  const guessedOutlines = onlyLoaded(
+    useGeoJson(pieces.filter((p) => p.guessed).map((p) => p.outline))
+  );
+  const backgroundOutlines = onlyLoaded(useGeoJson(backgroundData));
 
   const question: Question = {
     question: `Guess the name of any missing ${singularFeature}`,
@@ -97,8 +94,8 @@ export default function PuzzleGuesser({
         height={800}
         width={800}
         isStatic={false}
-        dataList={pieces.filter((p) => p.guessed).map((p) => p.outline)}
-        backgroundDataList={backgroundData}
+        dataList={guessedOutlines}
+        backgroundDataList={backgroundOutlines}
       />
       <QuestionTask
         question={question}

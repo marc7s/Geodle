@@ -5,9 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "sqlserver"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Region {
@@ -21,16 +20,16 @@ model Region {
 
 model Country {
   id            Int     @id @default(autoincrement())
-  iso2Code      String  @unique @db.VarChar(2)
-  iso3Code      String  @unique @db.VarChar(3)
+  iso2Code      String  @unique
+  iso3Code      String  @unique
   isIndependent Boolean
   isCurated     Boolean @default(false)
 
   englishShortName String  @unique
   englishLongName  String?
   domesticName     String  @unique
-  aliases          String  @db.NVarChar(max)
-  bordersISO3      String  @db.NVarChar(max)
+  aliases          String
+  bordersISO3      String
 
   lat  Float
   long Float
@@ -38,6 +37,7 @@ model Country {
   regionId Int
   Region   Region @relation(fields: [regionId], references: [id])
 
+  @@index([regionId])
   Cities City[]
 
   createdAt DateTime @default(now())

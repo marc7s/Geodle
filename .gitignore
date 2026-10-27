@@ -7,7 +7,7 @@
 /src/types/routing/generated/*
 
 # generated data
-/src/data/generated/*
+/public/generated/*
 
 # dependencies
 /node_modules
@@ -43,3 +43,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sqlite databases, recreated from the datasets with `npm run deploy-dev` / `npm run deploy-prod`
+/prisma/*.db
+/prisma/*.db-journal
+
+# migrations are not used, the database is always recreated from the schema
+/prisma/migrations

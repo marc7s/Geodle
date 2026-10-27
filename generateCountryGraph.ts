@@ -48,15 +48,14 @@ async function generateSolutions(
   );
 
   const graph = Graph();
+  // Filled in once the graph is built, for fast lookups
+  let graphNodes: Set<string> = new Set();
   const solutions: Map<PairID, CountryPathSolution> = new Map();
 
   function generateSolution(start: Country, end: Country): void {
     solutionProgress.increment();
     // Ensure both countries are part of the graph, otherwise at least one of them borders no countries and a solution is therefore impossible
-    if (
-      !graph.nodes().includes(start.iso3Code) ||
-      !graph.nodes().includes(end.iso3Code)
-    )
+    if (!graphNodes.has(start.iso3Code) || !graphNodes.has(end.iso3Code))
       return;
 
     const pairID: PairID = getPairID(start, end);
@@ -118,6 +117,8 @@ async function generateSolutions(
     );
   });
 
+  graphNodes = new Set(graph.nodes());
+
   // Generate solutions for all country pairs. Impossible solutions will be discarded
   for (let i = 0; i < countries.length; i++) {
     for (let j = i + 1; j < countries.length; j++)
@@ -164,39 +165,18 @@ async function main() {
   );
 
   for (const solutionGroup of solutionGroups) {
-    await Promise.all(
-      solutionGroup.solutions.map(async (solution) => {
-        await addPath(
-          solutionGroup.selection,
-          solutionGroup.region,
-          solution.c1,
-          solution.c2,
-          solution.paths
-        ).then(() => {
-          pathProgress.increment();
-        });
-      })
-    );
+    await prisma.countryPaths.createMany({
+      data: solutionGroup.solutions.map((solution) => ({
+        selection: solutionGroup.selection,
+        region: solutionGroup.region,
+        country1ISO3: solution.c1,
+        country2ISO3: solution.c2,
+        path: solution.paths.map((path) => path.join(',')).join(';'),
+      })),
+    });
+    pathProgress.increment(solutionGroup.solutions.length);
   }
   pathProgress.stop();
 }
 
-async function addPath(
-  selection: CountrySelection,
-  region: GameRegion,
-  startISO3: string,
-  endISO3: string,
-  paths: string[][]
-) {
-  return await prisma.countryPaths.create({
-    data: {
-      selection: selection,
-      region: region,
-      country1ISO3: startISO3,
-      country2ISO3: endISO3,
-      path: paths.map((path) => path.join(',')).join(';'),
-    },
-  });
-}
-
-main();
+main().finally(() => prisma.$disconnect());

@@ -1,3 +1,4 @@
+import { cleanAliases } from '@/backendUtils';
 import { SeedCoordinate } from './interfaces';
 import {
   CSVData,
@@ -10,7 +11,7 @@ import { ignoredCountries } from './countries';
 
 enum CityCSVHeaders {
   'Geoname ID' = 0,
-  'Name',
+  Name,
   'ASCII Name',
   'Alternate Names',
   'Feature Class',
@@ -22,13 +23,13 @@ enum CityCSVHeaders {
   'Admin2 Code',
   'Admin3 Code',
   'Admin4 Code',
-  'Population',
-  'Elevation',
+  Population,
+  Elevation,
   'DIgital Elevation Model',
-  'Timezone',
+  Timezone,
   'Modification date',
   'LABEL EN',
-  'Coordinates',
+  Coordinates,
 }
 
 export interface SeedCity {
@@ -101,9 +102,10 @@ export async function GetSeedCities(): Promise<SeedCity[]> {
       const seedCity: SeedCity = {
         englishName: row[CityCSVHeaders['ASCII Name']],
         domesticName: domesticName,
-        aliases: row[CityCSVHeaders['Alternate Names']]
-          .split(',')
-          .map((n: string) => n.trim()),
+        aliases: cleanAliases(
+          row[CityCSVHeaders['ASCII Name']],
+          row[CityCSVHeaders['Alternate Names']].split(',')
+        ),
         countryEnglishName: row[CityCSVHeaders['Country name EN']],
         countryISO2Code: countryISO2,
         isCapital: row[CityCSVHeaders['Feature Code']] === 'PPLC',

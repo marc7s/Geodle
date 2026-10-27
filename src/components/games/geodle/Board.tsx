@@ -33,7 +33,7 @@ interface Props {
 
 export function Board({ board, spaceIndices }: Props) {
   function renderTileRow(tileStates: TileState[], rowIndex: number) {
-    const rowElements: JSX.Element[] = [];
+    const rowElements: React.JSX.Element[] = [];
     for (let colIndex = 0; colIndex < tileStates.length; colIndex++) {
       const id: string = `${rowIndex}-${colIndex}`;
       if (spaceIndices.includes(colIndex))

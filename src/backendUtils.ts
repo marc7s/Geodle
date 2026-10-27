@@ -1,6 +1,5 @@
 import { Presets, SingleBar } from 'cli-progress';
-import { GameParams } from './types/routing/dynamicParams';
-import { permanentRedirect } from 'next/navigation';
+import unidecode from 'unidecode';
 
 export function createConsoleProgressBar(title: string) {
   return new SingleBar(
@@ -11,28 +10,39 @@ export function createConsoleProgressBar(title: string) {
   );
 }
 
+// Encodes a list of strings as a single ;-separated string. Decoded by `prismaDecodeStringList`
 export function prismaEncodeStringList(str: string[]): string {
-  // There is a limit to the string length, so we only encode the first N elements, so that the total size is below a threshold
-  return str.reduce((acc, curr) => (acc.length > 500 ? acc : acc + curr), '');
+  return str
+    .map((s) => s.replaceAll(';', '').trim())
+    .filter((s) => s.length > 0)
+    .join(';');
 }
 
-function parseSeedFromGameParams({ params }: GameParams): number | undefined {
-  if (!params.seed || params.seed.length === 0) return undefined;
-  const parsedSeed: number = parseInt(params.seed[0]);
-  return Number.isNaN(parsedSeed) ? undefined : parsedSeed;
+function normalizeName(name: string): string {
+  return unidecode(name).toLocaleLowerCase().trim();
 }
 
 /**
- *
- * Run server-side, to get the seed from the game parameters
- * Redirects to a seeded URL if the seed is undefined
+ * Keeps the alternative names that make sense as answers.
+ * Answers are checked on every keystroke, so names that are too short, or the start of the name itself,
+ * would be accepted before the player has finished typing. Only Latin script names are kept, since the game is in English and names are matched without diacritics
  */
-export function getSeed(
-  gameParams: GameParams,
-  seededHrefFunction: (seed: number | undefined) => string
-): number {
-  const seed: number | undefined = parseSeedFromGameParams(gameParams);
-  if (seed === undefined) permanentRedirect(seededHrefFunction(0));
+export function cleanAliases(name: string, aliases: string[]): string[] {
+  const normalizedName: string = normalizeName(name);
+  const seen: Set<string> = new Set([normalizedName]);
 
-  return seed;
+  return (
+    aliases
+      .map((a) => a.trim())
+      // Latin script, starting with a capital letter. Lowercase names are mostly machine transliterations, e.g. "jin si dui"
+      .filter((a) => /^\p{Lu}[\p{Script=Latin}\p{M}\s'’.-]*$/u.test(a))
+      .filter((a) => {
+        const normalized: string = normalizeName(a);
+        if (normalized.length < 4) return false; // Codes and abbreviations, e.g. STO
+        if (normalizedName.startsWith(normalized)) return false;
+        if (seen.has(normalized)) return false;
+        seen.add(normalized);
+        return true;
+      })
+  );
 }

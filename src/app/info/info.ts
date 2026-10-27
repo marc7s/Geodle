@@ -1,3 +1,5 @@
+import type { City, Country } from '@prisma/client';
+
 export interface InfoParam {
   id: string;
 }
@@ -29,4 +31,26 @@ export function getStaticInfoIDParams<T>(
     .map((id) => {
       return { id: id };
     });
+}
+
+// Returns the slug of every capital, keyed by capital id
+// A few capitals share a name (Kingston and Victoria), so the first one (by country id) gets the plain name,
+// and the others get their country appended, e.g. `kingston-norfolk-island`
+export function getCapitalSlugs(
+  combinedCountries: { capital: City; country: Country }[]
+): Map<number, string> {
+  const slugs: Map<number, string> = new Map();
+  const taken: Set<string> = new Set();
+
+  [...combinedCountries]
+    .sort((a, b) => a.country.id - b.country.id)
+    .forEach(({ capital, country }) => {
+      let slug: string = createSlug(capital.englishName)!;
+      if (taken.has(slug))
+        slug = `${slug}-${createSlug(country.englishShortName)}`;
+      taken.add(slug);
+      slugs.set(capital.id, slug);
+    });
+
+  return slugs;
 }

@@ -1,4 +1,4 @@
-import { PrismaClient, Region } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { GetSeedCountries, SeedCountry } from './seeds/countries';
 import { GetSeedCities, SeedCity } from './seeds/cities';
 import {
@@ -8,107 +8,73 @@ import {
 
 const prisma = new PrismaClient();
 
-async function upsertRegion(name: string) {
-  return await prisma.region.upsert({
-    where: {
-      name: name,
-    },
-    update: {},
-    create: {
-      name: name,
-    },
-  });
-}
-
-async function createCountry(seedCountry: SeedCountry, region: Region) {
-  return await prisma.country.create({
-    data: {
-      iso2Code: seedCountry.ISO2Code,
-      iso3Code: seedCountry.ISO3Code,
-      isIndependent: seedCountry.isIndependent,
-      isCurated: seedCountry.isCurated,
-      englishShortName: seedCountry.englishShortName,
-      englishLongName: seedCountry.englishLongName,
-      domesticName: seedCountry.domesticName,
-      aliases: prismaEncodeStringList(seedCountry.aliases),
-      lat: seedCountry.coordinates.lat,
-      long: seedCountry.coordinates.long,
-      regionId: region.id,
-      bordersISO3: seedCountry.bordersISO3.join(','),
-    },
-  });
-}
-
-async function createCity(seedCity: SeedCity) {
-  return await prisma.city.create({
-    data: {
-      englishName: seedCity.englishName,
-      domesticName: seedCity.domesticName,
-      aliases: prismaEncodeStringList(seedCity.aliases),
-      isCapital: seedCity.isCapital,
-      countryId: (
-        await prisma.country
-          .findUniqueOrThrow({
-            where: {
-              iso2Code: seedCity.countryISO2Code,
-            },
-          })
-          .catch((err) => {
-            console.error(
-              `Could not find country for city ${seedCity.englishName}, looking for ISOCode2 ${seedCity.countryISO2Code}`
-            );
-            throw err;
-          })
-      ).id,
-      lat: seedCity.coordinates.lat,
-      long: seedCity.coordinates.long,
-    },
-  });
-}
-
 async function main() {
   const seedCities: SeedCity[] = await GetSeedCities();
   const seedCountries: SeedCountry[] = await GetSeedCountries(seedCities);
 
-  // Insert countries and regions
-  const countryProgress = createConsoleProgressBar('Inserting countries');
-  countryProgress.start(seedCountries.length + 1, 1);
-  for (const seedCountry of seedCountries) {
-    const region = await upsertRegion(seedCountry.region);
-    await createCountry(seedCountry, region);
-    countryProgress.increment();
+  // Insert regions
+  const regionNames: string[] = Array.from(
+    new Set(seedCountries.map((sc) => sc.region))
+  );
+  for (const name of regionNames) {
+    await prisma.region.upsert({
+      where: { name: name },
+      update: {},
+      create: { name: name },
+    });
   }
-  countryProgress.stop();
+  const regionIds: Map<string, number> = new Map(
+    (await prisma.region.findMany()).map((r) => [r.name, r.id])
+  );
 
-  // Insert cities
+  // Insert countries
+  await prisma.country.createMany({
+    data: seedCountries.map((sc) => ({
+      iso2Code: sc.ISO2Code,
+      iso3Code: sc.ISO3Code,
+      isIndependent: sc.isIndependent,
+      isCurated: sc.isCurated,
+      englishShortName: sc.englishShortName,
+      englishLongName: sc.englishLongName,
+      domesticName: sc.domesticName,
+      aliases: prismaEncodeStringList(sc.aliases),
+      lat: sc.coordinates.lat,
+      long: sc.coordinates.long,
+      regionId: regionIds.get(sc.region)!,
+      bordersISO3: sc.bordersISO3.join(','),
+    })),
+  });
+  console.log(`Inserted ${seedCountries.length} countries`);
+
+  const countryIds: Map<string, number> = new Map(
+    (await prisma.country.findMany()).map((c) => [c.iso2Code, c.id])
+  );
+
+  // Insert cities in batches, so we can report progress
+  const cities = seedCities.map((sc) => {
+    const countryId: number | undefined = countryIds.get(sc.countryISO2Code);
+    if (countryId === undefined)
+      throw new Error(
+        `Could not find country for city ${sc.englishName}, looking for ISOCode2 ${sc.countryISO2Code}`
+      );
+    return {
+      englishName: sc.englishName,
+      domesticName: sc.domesticName,
+      aliases: prismaEncodeStringList(sc.aliases),
+      isCapital: sc.isCapital,
+      countryId: countryId,
+      lat: sc.coordinates.lat,
+      long: sc.coordinates.long,
+    };
+  });
+
   const cityProgress = createConsoleProgressBar('Inserting cities');
-  cityProgress.start(seedCities.length + 1, 1);
-
-  // There are so many cities that seeding them all in parallell causes the database to run out of memory
-  // However, seeding them all in series is much slower
-  // Therefore, split the cities into batches before inserting the batches in parallell
-  const batchSize: number = 7_500;
-  const cityBatches: SeedCity[][] = [];
-  let currBatch: SeedCity[] = [];
-
-  for (let i = 0; i < seedCities.length; i++) {
-    currBatch.push(seedCities[i]);
-
-    if (i > 0 && (i % batchSize === 0 || i === seedCities.length - 1)) {
-      cityBatches.push(currBatch);
-      currBatch = [];
-    }
-  }
-
-  // Insert the cities in parallell, but wait until the entire batch is complete before continuing with the next
-  for (const cityBatch of cityBatches) {
-    await Promise.all(
-      cityBatch.map(async (sc) => {
-        await createCity(sc).then(() => {
-          cityProgress.increment();
-        });
-      })
-    );
+  cityProgress.start(cities.length, 0);
+  const batchSize: number = 10_000;
+  for (let i = 0; i < cities.length; i += batchSize) {
+    const batch = cities.slice(i, i + batchSize);
+    await prisma.city.createMany({ data: batch });
+    cityProgress.increment(batch.length);
   }
   cityProgress.stop();
 }

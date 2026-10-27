@@ -3,14 +3,8 @@ import { Country } from '@prisma/client';
 import { Point } from 'pigeon-maps';
 import { GameRegion } from './types/routing/generated/regions';
 import { Feature, GameParams } from './types/routing/dynamicParams';
-import { createHash } from 'crypto';
-import { Game, SeedInfo } from './types/games';
-import { redirect } from 'next/navigation';
-import {
-  OPT_DEBUG_DISABLE_GAME_SEED_GENERATION,
-  OPT_DEBUG_ISOLATE_BUILD_TO_GAME,
-} from './optimizations';
-const unidecode = require('unidecode');
+import { Game } from './types/games';
+import { sha256Base64 } from './sha256';
 
 export type DailyGameAdditionalConfig = { [key: string]: string };
 
@@ -54,6 +48,48 @@ export const MapDefaultConfigs: {
   },
 };
 
+// Letters that do not decompose into a base letter and diacritics
+const plainLetters: Record<string, string> = {
+  ß: 'ss',
+  æ: 'ae',
+  œ: 'oe',
+  ø: 'o',
+  đ: 'd',
+  ð: 'd',
+  þ: 'th',
+  ł: 'l',
+  ı: 'i',
+  ħ: 'h',
+  ŋ: 'n',
+  ŧ: 't',
+  ĸ: 'k',
+  ŀ: 'l',
+  ſ: 's',
+  ə: 'e',
+  ǝ: 'e',
+  ɛ: 'e',
+  ɩ: 'i',
+  ɔ: 'o',
+  ɵ: 'o',
+  ɣ: 'g',
+  ȝ: 'y',
+  '’': "'",
+  '‘': "'",
+  ʼ: "'",
+  '´': "'",
+  '`': "'",
+};
+
+// Removes diacritics, e.g. "Curaçao" becomes "Curacao", so answers can be typed without them
+// A lightweight replacement for `unidecode`, whose transliteration tables for every script would be
+// shipped to every page. All answers are in the Latin script, so this gives the same result for them
+export function toPlainLatin(text: string): string {
+  return text
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\x00-\x7f]/g, (c) => plainLetters[c] ?? c);
+}
+
 export function isCorrect(
   answer: string,
   correct: string,
@@ -66,8 +102,8 @@ export function isCorrect(
   }
 
   if (asciiTranslation) {
-    answer = unidecode(answer);
-    correct = unidecode(correct);
+    answer = toPlainLatin(answer);
+    correct = toPlainLatin(correct);
   }
 
   return answer === correct;
@@ -103,72 +139,16 @@ export function generateStaticFeatureParams(...allowedFeatures: Feature[]) {
   });
 }
 
-export function handleSeedClientSide(
-  seedInfo: SeedInfo,
+// Returns why the game cannot be played with these settings, or undefined if it can
+export function getUnsupportedReason(
   game: Game,
-  gameParams: GameParams,
-  additionalDailyConfig: DailyGameAdditionalConfig,
-  seededHrefFunction: (seed: number) => string,
-  randomSeededHrefFunction: () => string
-): void {
-  // If the seed is 0 and the gamemode is training, redirect to a random seed
-  if (gameParams.params.gamemode === 'training' && seedInfo.seed === 0)
-    redirect(randomSeededHrefFunction());
-
-  // If the seed is 0 and the gamemode is daily, redirect to the current daily seed
-  if (gameParams.params.gamemode === 'daily' && seedInfo.seed === 0) {
-    const correctSeed: number = getDailySeed(
-      seedInfo.seedCount,
-      game,
-      gameParams,
-      new Date(),
-      additionalDailyConfig
-    );
-    redirect(seededHrefFunction(correctSeed));
-  }
-}
-
-/**
- * Generates static parameters for dynamic routing, based on the possible values
- * @param possibilityFunction Function returning all possible values, from which the seed will decide the solution
- * @param singleSeed If true, only one seed will be generated. This is useful for games where the seed is not used to generate the solution
- */
-export async function generateStaticSeedParams<T>(
-  possibilityFunction: () => Promise<T[]>,
-  game: Game,
-  { params }: GameParams,
-  singleSeed: boolean = false
-) {
-  // Debug flag: only build the specified game if building in development and the flag is set
-  if (
-    process.env.DEV_BUILD === '1' &&
-    OPT_DEBUG_ISOLATE_BUILD_TO_GAME !== undefined &&
-    OPT_DEBUG_ISOLATE_BUILD_TO_GAME !== game.displayName
-  ) {
-    return [{ seed: undefined }];
-  }
-
-  // Do not generate pages for unsupported features
-  if (!game.allowedFeatures.includes(params.feature)) return [];
-
-  // Do not generate daily pages if the game does not support it
-  if (params.gamemode === 'daily' && !game.supportsDailyMode) return [];
-
-  const debugDisableSeeding: boolean =
-    process.env.DEV_BUILD === '1' &&
-    OPT_DEBUG_DISABLE_GAME_SEED_GENERATION.includes(game.displayName);
-
-  const seedCount: number =
-    singleSeed || debugDisableSeeding
-      ? 1
-      : (await possibilityFunction()).length;
-  const seedParams = [...Array(seedCount + 1).keys()].map((seed) => {
-    return {
-      seed: [seed.toString()],
-    };
-  });
-
-  return [...seedParams, { seed: undefined }];
+  { params }: GameParams
+): string | undefined {
+  if (!game.allowedFeatures.includes(params.feature))
+    return `${game.displayName} does not support ${params.feature}`;
+  if (params.gamemode === 'daily' && !game.supportsDailyMode)
+    return `${game.displayName} does not have a daily challenge`;
+  return undefined;
 }
 
 export function getFlagURL(country: Country): string {
@@ -215,36 +195,6 @@ export function getSolutions<T>(
   }
 }
 
-export function getDailySolution<T>(
-  possibilities: T[],
-  game: Game,
-  { params }: GameParams,
-  additionalConfig: DailyGameAdditionalConfig = {}
-): T | undefined {
-  if (possibilities.length < 1) return;
-  const configID: string = Object.entries(additionalConfig)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('-');
-  const identifier: string = `${game.displayName}-${params.region}-${params.selection}-${params.feature}${configID.length > 0 ? '-' + configID : ''}-${new Date().toISOString().split('T')[0]}`;
-  const dateHash: string = createHash('sha256')
-    .update(identifier)
-    .digest('base64');
-
-  const seed: number = dateHash
-    .split('')
-    .reduce(
-      (hashCode, currentVal) =>
-        (hashCode =
-          currentVal.charCodeAt(0) +
-          (hashCode << 6) +
-          (hashCode << 16) -
-          hashCode),
-      0
-    );
-
-  return arraySeededShuffle(possibilities, seed).at(0);
-}
-
 export function getDailySeed(
   seedCount: number,
   game: Game,
@@ -256,9 +206,7 @@ export function getDailySeed(
     .map(([key, value]) => `${key}=${value}`)
     .join('-');
   const identifier: string = `${game.displayName}-${params.region}-${params.selection}-${params.feature}${configID.length > 0 ? '-' + configID : ''}-${dailyDate.toISOString().split('T')[0]}`;
-  const dateHash: string = createHash('sha256')
-    .update(identifier)
-    .digest('base64');
+  const dateHash: string = sha256Base64(identifier);
 
   const seed: number = dateHash
     .split('')
@@ -276,7 +224,10 @@ export function getDailySeed(
 }
 
 // Returns true if the two countries share a border
-export function countryBorders(country1: Country, country2: Country): boolean {
+export function countryBorders(
+  country1: Pick<Country, 'bordersISO3'>,
+  country2: Pick<Country, 'iso3Code'>
+): boolean {
   return country1.bordersISO3.split(',').includes(country2.iso3Code);
 }
 
