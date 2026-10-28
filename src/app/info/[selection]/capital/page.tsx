@@ -1,16 +1,24 @@
 import { getCombinedCountries, getRegions } from '@/api';
 import { Region } from '@prisma/client';
 import Link from 'next/link';
-import { getCapitalSlugs } from '../info';
+import { getCapitalSlugs } from '../../info';
+import SelectionSwitch from '../../SelectionSwitch';
+import { CountrySelection } from '@/types/routing/dynamicParams';
 import { CombinedCountry } from '@/db';
 
-export default async function CountriesPage() {
+export default async function CapitalsPage(props: {
+  params: Promise<{ selection: CountrySelection }>;
+}) {
+  const { selection } = await props.params;
   const combinedCountries: CombinedCountry[] = await getCombinedCountries(
-    'all',
+    selection,
     'World'
   );
   const regions: Region[] = await getRegions();
-  const capitalSlugs: Map<number, string> = getCapitalSlugs(combinedCountries);
+  // The capital pages are the same for every selection, so the slugs are based on all capitals
+  const capitalSlugs: Map<number, string> = getCapitalSlugs(
+    await getCombinedCountries('all', 'World')
+  );
   const combinedByRegion: { region: Region; combined: CombinedCountry[] }[] =
     [];
 
@@ -29,7 +37,8 @@ export default async function CountriesPage() {
 
   return (
     <>
-      <div className='text-3xl text-center mb-10'>Capitals by region</div>
+      <div className='text-3xl text-center mb-6'>Capitals by region</div>
+      <SelectionSwitch current={selection} kind='capital' />
       <div className='flex items-center'>
         <div className='flex flex-wrap flex-row justify-center items-start w-full'>
           {combinedByRegion.map((cr) => (

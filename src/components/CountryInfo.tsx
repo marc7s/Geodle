@@ -25,6 +25,7 @@ export default function CountryInfo(props: Props) {
         ></Image>
         <h1 className='mt-4'>{props.country.englishShortName}</h1>
         <h2>Domestic name: {props.country.domesticName}</h2>
+        <h2>Independent: {props.country.isIndependent ? 'Yes' : 'No'}</h2>
         <h2>
           Coordinates: {props.country.lat} {props.country.long}
         </h2>

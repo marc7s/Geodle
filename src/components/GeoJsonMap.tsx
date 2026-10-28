@@ -2,7 +2,7 @@
 
 import { GeoJson, Map } from 'pigeon-maps';
 import { emptymap } from '@/mapProviders';
-import { MapConfig } from '@/utils';
+import { getMinZoomToFillMap, MapConfig } from '@/utils';
 import { GeoJsonData } from '@/geoUtils';
 
 type DataListStyle = 'Background' | 'Foreground' | 'Secondary';
@@ -36,7 +36,14 @@ export default function GeoJsonMap({
         width={width}
         defaultCenter={config.position}
         defaultZoom={config.zoom ?? 6}
-        minZoom={config.minZoom}
+        // Do not allow panning or zooming out past the edge of the world
+        // Static maps cannot be moved, and may need to zoom out further to fit large countries
+        limitBounds={isStatic ? 'center' : 'edge'}
+        minZoom={
+          isStatic
+            ? config.minZoom
+            : Math.max(config.minZoom ?? 0, getMinZoomToFillMap(width, height))
+        }
         maxZoom={config.maxZoom}
         provider={emptymap}
         attribution={false}

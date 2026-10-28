@@ -90,23 +90,33 @@ export function toPlainLatin(text: string): string {
     .replace(/[^\x00-\x7f]/g, (c) => plainLetters[c] ?? c);
 }
 
+// Normalizes an answer for comparison: lowercase (unless case sensitive) and without diacritics
+export function normalizeAnswer(
+  answer: string,
+  caseSensitive: boolean = false,
+  asciiTranslation: boolean = true
+): string {
+  if (!caseSensitive) answer = answer.toLocaleLowerCase();
+  if (asciiTranslation) answer = toPlainLatin(answer);
+  return answer;
+}
+
+// Returns the lowest zoom level where the world covers the whole map, so there is no empty area around it
+// The world is 256 pixels wide at zoom 0, and doubles in size for every zoom level
+export function getMinZoomToFillMap(width: number, height: number): number {
+  return Math.max(0, Math.ceil(Math.log2(Math.max(width, height) / 256)));
+}
+
 export function isCorrect(
   answer: string,
   correct: string,
   caseSensitive: boolean = false,
   asciiTranslation: boolean = true
 ) {
-  if (!caseSensitive) {
-    answer = answer.toLocaleLowerCase();
-    correct = correct.toLocaleLowerCase();
-  }
-
-  if (asciiTranslation) {
-    answer = toPlainLatin(answer);
-    correct = toPlainLatin(correct);
-  }
-
-  return answer === correct;
+  return (
+    normalizeAnswer(answer, caseSensitive, asciiTranslation) ===
+    normalizeAnswer(correct, caseSensitive, asciiTranslation)
+  );
 }
 
 // Returns a powerset, i.e. all possible combinations of the elements in the provided array

@@ -209,6 +209,7 @@ function PatherGameBoard({
         backgroundDataList={backgroundGeoJson}
       />
       <QuestionTask
+        multipleAnswers={true}
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}

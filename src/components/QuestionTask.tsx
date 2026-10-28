@@ -2,7 +2,7 @@
 
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import styles from './QuestionTask.module.scss';
-import { isCorrect } from '@/utils';
+import { isCorrect, normalizeAnswer } from '@/utils';
 
 const useFocus = (): [any, () => void] => {
   const htmlElRef: MutableRefObject<any> = useRef(null);
@@ -31,6 +31,9 @@ interface Props {
   focused?: boolean;
   isReusable?: boolean;
   allowGivingUp?: boolean;
+  // True if the correct answers are different answers (e.g. any of the missing countries),
+  // false if they are alternative names for the same answer (e.g. aliases)
+  multipleAnswers?: boolean;
 }
 
 export default function QuestionTask({
@@ -43,6 +46,7 @@ export default function QuestionTask({
   focused = false,
   isReusable = false,
   allowGivingUp = true,
+  multipleAnswers = false,
 }: Props) {
   const [answer, setAnswer] = useState('');
   const [isAlreadyAnswered, setIsAlreadyAnswered] = useState<boolean>(false);
@@ -56,19 +60,55 @@ export default function QuestionTask({
   }, [focused, setInputFocus]);
 
   // Reset the state if the question changes and is not complete (the question was changed)
+  // Compare the content, since games recreate the question object on every render. Otherwise, the
+  // first typed character would be cleared, as starting the game causes a render
+  const questionKey: string = `${question.question}|${question.correctAnswers.join('|')}`;
   useEffect(() => {
     if (question.correct) return;
     setAnswer('');
     setDisabled(false);
-  }, [question]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionKey, question.correct]);
 
   if (!question) return <>Unknown question!</>;
+
+  // Returns true if another answer starts with the typed answer, e.g. "Dominica" and "Dominican Republic"
+  // Then the answer is only submitted when pressing Enter, so the longer answer can still be typed
+  function isAmbiguous(typedAnswer: string): boolean {
+    const typed: string = normalizeAnswer(typedAnswer, question.caseSensitive);
+    const answered: Set<string> = new Set(
+      alreadyAnswered.map((a) => normalizeAnswer(a, question.caseSensitive))
+    );
+    const correct: Set<string> = new Set(
+      question.correctAnswers.map((a) =>
+        normalizeAnswer(a, question.caseSensitive)
+      )
+    );
+
+    // Alternative names for the same answer lead to the same result, so they are not ambiguous
+    const candidates: string[] = (
+      multipleAnswers
+        ? [...question.correctAnswers, ...possibleAnswers]
+        : possibleAnswers
+    )
+      .map((a) => normalizeAnswer(a, question.caseSensitive))
+      .filter((a) => multipleAnswers || !correct.has(a) || !correct.has(typed));
+
+    return candidates.some(
+      (c) => c !== typed && c.startsWith(typed) && !answered.has(c)
+    );
+  }
 
   function onAnswerChange(newAnswer: string) {
     setAnswer(newAnswer);
     if (!started) onQuestionStarted();
     setStarted(true);
+    submitAnswer(newAnswer, false);
+  }
 
+  // Checks the answer, and handles it if it matches
+  // While typing, ambiguous answers are not submitted. Pressing Enter (`force`) submits them
+  function submitAnswer(newAnswer: string, force: boolean) {
     const matchingAlreadyAnswered: string | undefined = alreadyAnswered.find(
       (a) => isCorrect(newAnswer, a, question.caseSensitive)
     );
@@ -80,6 +120,8 @@ export default function QuestionTask({
     setIsAlreadyAnswered(matchingAlreadyAnswered !== undefined);
 
     if (matchingAlreadyAnswered) {
+      return;
+    } else if (!force && isAmbiguous(newAnswer)) {
       return;
     } else if (matchingCorrectAnswer) {
       onCorrectAnswer(question, matchingCorrectAnswer);
@@ -108,6 +150,9 @@ export default function QuestionTask({
           onChange={(event) => {
             onAnswerChange(event.target.value);
           }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') submitAnswer(answer, true);
+          }}
           disabled={disabled}
         />
         {allowGivingUp ? (
@@ -115,7 +160,10 @@ export default function QuestionTask({
             className='ml-2 cursor-pointer'
             type='button'
             tabIndex={-1}
-            onClick={() => onAnswerChange(question.correctAnswers[0])}
+            onClick={() => {
+              setAnswer(question.correctAnswers[0]);
+              submitAnswer(question.correctAnswers[0], true);
+            }}
             value='Show answer'
           />
         ) : (

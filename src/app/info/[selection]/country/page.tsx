@@ -1,10 +1,15 @@
 import { getCountries, getRegions } from '@/api';
 import { Country, Region } from '@prisma/client';
 import Link from 'next/link';
-import { createSlug } from '../info';
+import { createSlug } from '../../info';
+import SelectionSwitch from '../../SelectionSwitch';
+import { CountrySelection } from '@/types/routing/dynamicParams';
 
-export default async function CountriesPage() {
-  const countries: Country[] = await getCountries('all', 'World');
+export default async function CountriesPage(props: {
+  params: Promise<{ selection: CountrySelection }>;
+}) {
+  const { selection } = await props.params;
+  const countries: Country[] = await getCountries(selection, 'World');
   const regions: Region[] = await getRegions();
   const countriesByRegion: { region: Region; countries: Country[] }[] = [];
   countries.forEach(async (c) => {
@@ -22,7 +27,8 @@ export default async function CountriesPage() {
 
   return (
     <>
-      <div className='text-3xl text-center mb-10'>Countries by region</div>
+      <div className='text-3xl text-center mb-6'>Countries by region</div>
+      <SelectionSwitch current={selection} kind='country' />
       <div className='flex items-center'>
         <div className='flex flex-wrap flex-row justify-center items-start w-full'>
           {countriesByRegion.map((cr) => (

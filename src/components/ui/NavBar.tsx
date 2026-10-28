@@ -171,7 +171,7 @@ export default function NavBar() {
                 <ListItem
                   key={infoPage.title}
                   title={infoPage.title}
-                  href={`/info/${infoPage.relHref}`}
+                  href={`/info/all/${infoPage.relHref}`}
                 >
                   {infoPage.description}
                 </ListItem>

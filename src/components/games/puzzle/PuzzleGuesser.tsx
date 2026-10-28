@@ -98,6 +98,7 @@ export default function PuzzleGuesser({
         backgroundDataList={backgroundOutlines}
       />
       <QuestionTask
+        multipleAnswers={true}
         question={question}
         onQuestionStarted={handleQuestionStarted}
         onCorrectAnswer={handleCorrectGuess}

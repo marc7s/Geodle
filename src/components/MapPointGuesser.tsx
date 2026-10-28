@@ -1,7 +1,7 @@
 'use client';
 
 import { Colors } from '@/colors';
-import { getSolutions, MapConfig } from '@/utils';
+import { getMinZoomToFillMap, getSolutions, MapConfig } from '@/utils';
 import { useSeed } from '@/components/useSeed';
 import { Map, Marker, Overlay, Point } from 'pigeon-maps';
 import styles from './MapPointGuesser.module.scss';
@@ -64,7 +64,6 @@ function MapPointGuesserBoard({
   gameConfig,
   markerWidth,
 }: Omit<Props, 'possiblePoints'> & { pointInfos: PointInfo[] }) {
-
   const [marked, setMarked] = useState<PointInfo[]>([]);
   const [hovered, setHovered] = useState<PointInfo>();
   const [points, setPoints] = useState<PointInfo[]>(pointInfos);
@@ -162,16 +161,20 @@ function MapPointGuesserBoard({
     setMarked([]);
   }
 
+  const mapSize: number = 900;
+
   return (
     <div className='flex-col items-center justify-center'>
       <div>
         <Map
-          height={900}
-          width={900}
+          height={mapSize}
+          width={mapSize}
           defaultCenter={config.position}
           defaultZoom={config.zoom}
           center={center}
-          minZoom={1}
+          // Do not allow panning or zooming out past the edge of the world
+          limitBounds='edge'
+          minZoom={getMinZoomToFillMap(mapSize, mapSize)}
           maxZoom={5}
           zoom={zoom}
           onClick={unmarkAll}
@@ -223,6 +226,7 @@ function MapPointGuesserBoard({
 
       <div className='flex flex-row justify-center items-center space-x-2'>
         <QuestionTask
+          multipleAnswers={true}
           question={question}
           allowGivingUp={false}
           alreadyAnswered={points

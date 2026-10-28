@@ -38,51 +38,60 @@ function geoPointToRad(geoPoint: GeoPoint): GeoPoint {
   };
 }
 
-// Returns the distance in meters between two GeoPoints, using the haversine formula
-function haversine(startPoint: GeoPoint, endPoint: GeoPoint): number {
+// Returns the rhumb line between two points: the route that keeps a constant compass direction
+// It goes east or west the shorter way around the globe, and never passes over the north or south pole,
+// so a country to the south is always shown as south, even if the shortest path would cross a pole
+// The distance is the distance travelled along that route, so it matches the direction shown
+function getRhumbLine(
+  startPoint: GeoPoint,
+  endPoint: GeoPoint
+): { bearingDeg: number; distance: number } {
   // Radius of the earth in meters
   const R = 6371e3;
 
-  // Convert points to rad
-  const startRad: GeoPoint = geoPointToRad(startPoint);
-  const endRad: GeoPoint = geoPointToRad(endPoint);
+  // Avoid infinite values at the poles
+  const maxLat: number = 89.9999;
+  const clampLat = (lat: number) => Math.max(-maxLat, Math.min(maxLat, lat));
+  const startRad: GeoPoint = geoPointToRad({
+    lat: clampLat(startPoint.lat),
+    long: startPoint.long,
+  });
+  const endRad: GeoPoint = geoPointToRad({
+    lat: clampLat(endPoint.lat),
+    long: endPoint.long,
+  });
 
-  // Calculate difference in lat/long between the points, in radians
-  const dLatRad: number = endRad.lat - startRad.lat;
-  const dLongRad: number = endRad.long - startRad.long;
+  const dLat: number = endRad.lat - startRad.lat;
+  // The difference in latitude on a Mercator projection
+  const dPsi: number = Math.log(
+    Math.tan(Math.PI / 4 + endRad.lat / 2) /
+      Math.tan(Math.PI / 4 + startRad.lat / 2)
+  );
 
-  const a =
-    Math.sin(dLatRad / 2) * Math.sin(dLatRad / 2) +
-    Math.cos(startRad.lat) *
-      Math.cos(endRad.lat) *
-      Math.sin(dLongRad / 2) *
-      Math.sin(dLongRad / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  // Go the shorter way east or west, across the date line if needed
+  let dLong: number = endRad.long - startRad.long;
+  if (dLong > Math.PI) dLong -= 2 * Math.PI;
+  if (dLong < -Math.PI) dLong += 2 * Math.PI;
 
-  return R * c;
+  // How much an east-west distance is stretched at these latitudes
+  // For (almost) east-west routes dPsi is close to 0, so use the latitude directly instead
+  const q: number =
+    Math.abs(dPsi) > 1e-12 ? dLat / dPsi : Math.cos(startRad.lat);
+
+  return {
+    bearingDeg: radToDeg(Math.atan2(dLong, dPsi)),
+    distance: Math.sqrt(dLat * dLat + q * q * dLong * dLong) * R,
+  };
 }
 
 export function getVectorBetweenCoordinates(
   startPoint: GeoPoint,
   endPoint: GeoPoint
 ): GeoVector2 {
-  // Convert points to rad
-  const startRad: GeoPoint = geoPointToRad(startPoint);
-  const endRad: GeoPoint = geoPointToRad(endPoint);
-
-  const dLong: number = endRad.long - startRad.long;
-
-  const y = Math.sin(dLong) * Math.cos(endRad.lat);
-  const x =
-    Math.cos(startRad.lat) * Math.sin(endRad.lat) -
-    Math.sin(startRad.lat) * Math.cos(endRad.lat) * Math.cos(dLong);
-
-  // Calculate the initial bearing (azimuth)
-  const initialBearing: number = radToDeg(Math.atan2(y, x));
-
+  const { bearingDeg, distance } = getRhumbLine(startPoint, endPoint);
   return {
     origin: startPoint,
-    bearingDeg: initialBearing,
-    distance: haversine(startPoint, endPoint),
+    bearingDeg: bearingDeg,
+    distance: distance,
   };
 }
