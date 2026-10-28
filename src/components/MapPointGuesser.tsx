@@ -237,13 +237,14 @@ function MapPointGuesserBoard({
               []
             )}
           isReusable={true}
+          disabled={gameContext.isFinished}
           onQuestionStarted={gameContext.start}
           onCorrectAnswer={handleCorrectGuess}
         />
         <Button variant='secondary' onClick={centerOnUncompleted}>
           Locate
         </Button>
-        <GiveUpDialog onGiveUp={() => finish(true)} />
+        <GiveUpDialog gameContext={gameContext} onGiveUp={() => finish(true)} />
       </div>
     </div>
   );

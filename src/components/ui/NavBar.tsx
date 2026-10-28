@@ -103,16 +103,10 @@ export default function NavBar() {
                 }}
                 className='row-span-4'
               >
-                <NavigationMenuLink asChild>
-                  <>
-                    <div className='mb-2 mt-4 text-lg font-medium'>
-                      Daily games
-                    </div>
-                    <p className='text-sm leading-tight text-muted-foreground'>
-                      The same minigames, but with a unique solution each day
-                    </p>
-                  </>
-                </NavigationMenuLink>
+                <div className='mb-2 mt-4 text-lg font-medium'>Daily games</div>
+                <p className='text-sm leading-tight text-muted-foreground'>
+                  The same minigames, but with a unique solution each day
+                </p>
               </li>
               {minigames
                 .filter((m) => m.game.supportsDailyMode)

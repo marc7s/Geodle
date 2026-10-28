@@ -139,11 +139,13 @@ function OutlinerGameBoard({
         possibleAnswers={possibleAnswers}
         allowGivingUp={false}
         isReusable={true}
+        disabled={gameContext.isFinished}
       />
       <div className='mb-4'>{allowedGuesses - guesses.length} guesses left</div>
-      {gameContext.gameStatus.timeStarted && (
-        <GiveUpDialog onGiveUp={() => finish(false, true)} />
-      )}
+      <GiveUpDialog
+        gameContext={gameContext}
+        onGiveUp={() => finish(false, true)}
+      />
     </div>
   );
 }

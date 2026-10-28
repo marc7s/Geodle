@@ -16,9 +16,6 @@ import {
   FinishedGameStatusSingleWithTries,
 } from '@/context/Game';
 import { getFormattedElapsedTime } from '@/format';
-import { Game } from '@/types/games';
-import { GameParams } from '@/types/routing/dynamicParams';
-import { usePathname } from 'next/navigation';
 
 export interface DialogAction {
   title: string;
@@ -112,16 +109,12 @@ interface Props {
   finishedStatus?: FinishedGameStatus;
   timeElapsedMS: number;
   actions: DialogAction[];
-  onClose: () => void;
-  game: Game | undefined;
-  params: GameParams | undefined;
+  // The dialog is shown while there is a finished status, unless it has been closed
+  closed: boolean;
 }
 export default function CompletedDialog(props: Props) {
-  // The page without a seed, so the game picks a new random one
-  const pathname: string = usePathname();
-
   return (
-    <AlertDialog open={props.finishedStatus !== undefined}>
+    <AlertDialog open={props.finishedStatus !== undefined && !props.closed}>
       {props.finishedStatus ? (
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -139,15 +132,6 @@ export default function CompletedDialog(props: Props) {
                 {a.title}
               </AlertDialogAction>
             ))}
-            {props.game &&
-              props.params &&
-              props.params.params.gamemode === 'training' && (
-                <AlertDialogAction>
-                  <a href={pathname}>
-                    Play next
-                  </a>
-                </AlertDialogAction>
-              )}
           </AlertDialogFooter>
         </AlertDialogContent>
       ) : (

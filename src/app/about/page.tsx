@@ -17,7 +17,7 @@ export default async function AboutPage() {
           put into preventing cheating or creating leaderboards.
         </p>
 
-        <p>I created this website to solve the following main issues:</p>
+        <h2 className='text-xl mb-2 mt-8'>I created this website to solve the following main issues:</h2>
         <ol className='list-decimal text-left mt-3 [&>li]:mb-2'>
           <li>
             Several minigame sites only support one daily game without the
@@ -31,24 +31,24 @@ export default async function AboutPage() {
           <li>Very limited customisability</li>
         </ol>
 
-        <p>
+        <h2 className='text-xl mb-2 mt-8'>
           Here is how I&apos;ve tried to address these issues through this
           website:
-        </p>
+        </h2>
         <ol className='list-decimal text-left mt-3 [&>li]:mb-2'>
           <li>
-            All minigames has both a daily mode with one solution per day, and a
+            All minigames have both a daily mode with one solution per day, and a
             training mode for unlimited rounds
           </li>
           <li>No ads</li>
           <li>
-            All minigames in one website with a cohesive user experience,
+            All minigames are in one website with a cohesive user experience,
             hopefully enough for a daily routine
           </li>
           <li>
             High customisability where each game can be modified with the
             parameters - from changing regions to guessing capitals instead of
-            countries
+            countries in the same game
           </li>
         </ol>
 

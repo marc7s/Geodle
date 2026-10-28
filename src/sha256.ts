@@ -87,7 +87,8 @@ function toBase64(bytes: Uint8Array): string {
   for (let i = 0; i < bytes.length; i += 3) {
     const [b0, b1 = 0, b2 = 0] = [bytes[i], bytes[i + 1], bytes[i + 2]];
     const triplet: number = (b0 << 16) | (b1 << 8) | b2;
-    result += BASE64_CHARS[(triplet >> 18) & 63] + BASE64_CHARS[(triplet >> 12) & 63];
+    result +=
+      BASE64_CHARS[(triplet >> 18) & 63] + BASE64_CHARS[(triplet >> 12) & 63];
     result += i + 1 < bytes.length ? BASE64_CHARS[(triplet >> 6) & 63] : '=';
     result += i + 2 < bytes.length ? BASE64_CHARS[triplet & 63] : '=';
   }

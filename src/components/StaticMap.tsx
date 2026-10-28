@@ -20,7 +20,7 @@ export default function StaticMap(props: Props) {
       mouseEvents={false}
       touchEvents={false}
     >
-      {props.marker ? <Marker anchor={props.position}></Marker> : <></>}
+      {props.marker && <Marker anchor={props.position}></Marker>}
     </Map>
   );
 }

@@ -1,0 +1,5 @@
+# Prettier also skips everything in .gitignore (build output, generated files, databases)
+
+package-lock.json
+public/
+AGENTS.md

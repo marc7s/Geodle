@@ -3,6 +3,7 @@
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import styles from './QuestionTask.module.scss';
 import { isCorrect, normalizeAnswer } from '@/utils';
+import { useAutoGuess } from '@/settings';
 
 const useFocus = (): [any, () => void] => {
   const htmlElRef: MutableRefObject<any> = useRef(null);
@@ -34,6 +35,8 @@ interface Props {
   // True if the correct answers are different answers (e.g. any of the missing countries),
   // false if they are alternative names for the same answer (e.g. aliases)
   multipleAnswers?: boolean;
+  // Disables answering, e.g. when the game has finished
+  disabled?: boolean;
 }
 
 export default function QuestionTask({
@@ -47,12 +50,16 @@ export default function QuestionTask({
   isReusable = false,
   allowGivingUp = true,
   multipleAnswers = false,
+  disabled: gameFinished = false,
 }: Props) {
   const [answer, setAnswer] = useState('');
   const [isAlreadyAnswered, setIsAlreadyAnswered] = useState<boolean>(false);
   const [started, setStarted] = useState<boolean>(false);
   const [disabled, setDisabled] = useState<boolean>(false);
+  // After showing the answer, the button submits the answer in the field instead
+  const [answerShown, setAnswerShown] = useState<boolean>(false);
   const [inputRef, setInputFocus] = useFocus();
+  const [autoGuess] = useAutoGuess();
 
   // Set the focus on focus change
   useEffect(() => {
@@ -67,6 +74,7 @@ export default function QuestionTask({
     if (question.correct) return;
     setAnswer('');
     setDisabled(false);
+    setAnswerShown(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionKey, question.correct]);
 
@@ -103,12 +111,16 @@ export default function QuestionTask({
     setAnswer(newAnswer);
     if (!started) onQuestionStarted();
     setStarted(true);
-    submitAnswer(newAnswer, false);
+    // Without auto-guessing, answers are only submitted by pressing Enter
+    if (autoGuess) submitAnswer(newAnswer, false);
+    // Typing changes the answer, so it is no longer a previous guess until it is checked again
+    else setIsAlreadyAnswered(false);
   }
 
   // Checks the answer, and handles it if it matches
   // While typing, ambiguous answers are not submitted. Pressing Enter (`force`) submits them
   function submitAnswer(newAnswer: string, force: boolean) {
+    if (gameFinished) return;
     const matchingAlreadyAnswered: string | undefined = alreadyAnswered.find(
       (a) => isCorrect(newAnswer, a, question.caseSensitive)
     );
@@ -131,8 +143,10 @@ export default function QuestionTask({
       const matchingIncorrectAnswer: string | undefined = possibleAnswers.find(
         (a) => isCorrect(newAnswer, a, question.caseSensitive)
       );
-      if (matchingIncorrectAnswer)
+      if (matchingIncorrectAnswer) {
         onIncorrectAnswer(question, matchingIncorrectAnswer);
+        setIsAlreadyAnswered(true);
+      }
     }
   }
 
@@ -153,18 +167,24 @@ export default function QuestionTask({
           onKeyDown={(event) => {
             if (event.key === 'Enter') submitAnswer(answer, true);
           }}
-          disabled={disabled}
+          disabled={disabled || gameFinished}
         />
         {allowGivingUp ? (
           <input
             className='ml-2 cursor-pointer'
             type='button'
             tabIndex={-1}
+            disabled={disabled || gameFinished}
             onClick={() => {
+              if (answerShown) return submitAnswer(answer, true);
+              // Only fill in the answer, so it can be read before it is submitted
+              if (!started) onQuestionStarted();
+              setStarted(true);
               setAnswer(question.correctAnswers[0]);
-              submitAnswer(question.correctAnswers[0], true);
+              setAnswerShown(true);
+              setInputFocus();
             }}
-            value='Show answer'
+            value={answerShown ? 'Submit' : 'Show answer'}
           />
         ) : (
           <></>

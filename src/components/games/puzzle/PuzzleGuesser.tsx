@@ -20,6 +20,7 @@ import GiveUpDialog from '@/components/ui/GiveUpDialog';
 import { arrayShuffle, MapConfig } from '@/utils';
 import { GeoJsonSource, GeoOutlineData } from '@/geoUtils';
 import { onlyLoaded, useGeoJson } from '@/components/useGeoJson';
+import { useSeed } from '@/components/useSeed';
 
 interface Props {
   title: string;
@@ -30,7 +31,18 @@ interface Props {
   mapConfig: MapConfig;
 }
 
-export default function PuzzleGuesser({
+export default function PuzzleGuesser(props: Props) {
+  const seed: number | undefined = useSeed(
+    PuzzleGuesserGame,
+    props.gameConfig,
+    1
+  );
+  if (seed === undefined) return <></>;
+
+  return <PuzzleGuesserBoard {...props} />;
+}
+
+function PuzzleGuesserBoard({
   title,
   feature,
   puzzlePieces,
@@ -39,7 +51,6 @@ export default function PuzzleGuesser({
   mapConfig,
 }: Props) {
   const singularFeature: string = formatSingularFeature(feature);
-  // All pieces are guessed, in a random order. There is no daily mode, so no seed is needed
   const [pieces, setPieces] = useState<GeoOutlineData[]>(() =>
     arrayShuffle([...puzzlePieces])
   );
@@ -105,11 +116,10 @@ export default function PuzzleGuesser({
         alreadyAnswered={pieces.filter((p) => p.guessed).map((p) => p.name)}
         allowGivingUp={false}
         isReusable={true}
+        disabled={gameContext.isFinished}
       />
       <div className='mb-4'>{pieces.filter((p) => !p.guessed).length} left</div>
-      {gameContext.gameStatus.timeStarted && (
-        <GiveUpDialog onGiveUp={() => finish(true)} />
-      )}
+      <GiveUpDialog gameContext={gameContext} onGiveUp={() => finish(true)} />
     </div>
   );
 }

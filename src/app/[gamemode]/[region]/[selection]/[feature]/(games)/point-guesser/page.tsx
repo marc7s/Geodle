@@ -46,9 +46,9 @@ export default async function PointGuesserPage(props: GamePageProps) {
   let possiblePoints: PointInfo[] = [];
   switch (params.feature) {
     case 'capitals':
-      possiblePoints = (
-        await getCapitals(params.selection, params.region)
-      ).map(cityToPoint);
+      possiblePoints = (await getCapitals(params.selection, params.region)).map(
+        cityToPoint
+      );
       break;
     case 'countries':
       possiblePoints = (

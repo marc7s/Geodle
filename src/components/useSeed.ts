@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Game } from '@/types/games';
 import { GameParams } from '@/types/routing/dynamicParams';
 import { DailyGameAdditionalConfig, getDailySeed } from '@/utils';
+import { useGameContext } from '@/context/Game';
 
 // The URL search parameter that holds the seed, e.g. `?seed=17`
 export const seedSearchParam: string = 'seed';
@@ -24,18 +25,31 @@ export function useSeed(
   additionalDailyConfig: DailyGameAdditionalConfig = {}
 ): number | undefined {
   const [seed, setSeed] = useState<number | undefined>(undefined);
+  const { setSeedInfo } = useGameContext();
+
+  // Let the game context know the seed, so "New game" can pick a different one
+  useEffect(() => {
+    if (seed !== undefined)
+      setSeedInfo({ game: game.linkName, seed, seedCount });
+  }, [game, seed, seedCount, setSeedInfo]);
 
   const { gamemode, region, selection, feature } = gameConfig.params;
   const dailyConfigKey: string = JSON.stringify(additionalDailyConfig);
 
   useEffect(() => {
+    const url: URL = new URL(window.location.href);
+
     // Games with a single seed do not use it to pick the solution, so keep it out of the URL
+    // A seed added to the URL is removed, since it has no effect
     if (seedCount <= 1) {
+      if (url.searchParams.has(seedSearchParam)) {
+        url.searchParams.delete(seedSearchParam);
+        window.history.replaceState(window.history.state, '', url);
+      }
       setSeed(1);
       return;
     }
 
-    const url: URL = new URL(window.location.href);
     const urlSeed: number = Number(url.searchParams.get(seedSearchParam));
     if (Number.isInteger(urlSeed) && urlSeed >= 1 && urlSeed <= seedCount) {
       setSeed(urlSeed);

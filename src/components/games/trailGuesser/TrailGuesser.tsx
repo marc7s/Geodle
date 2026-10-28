@@ -74,7 +74,6 @@ function TrailGuesserGameBoard({
   correctFeature,
   gameConfig,
 }: Props & { correctFeature: TrailFeature }) {
-
   const [guesses, setGuesses] = useState<FeatureGuess[]>([]);
   const singularFeature: string = formatSingularFeature(feature);
 
@@ -94,6 +93,18 @@ function TrailGuesserGameBoard({
     setGuesses([...guesses, featureGuess]);
   }
 
+  function finish(succeeded: boolean, numberOfTries: number) {
+    gameContext.finish({
+      singleWithTries: true,
+
+      correctAnswer: correctFeature.displayValue,
+      succeeded: succeeded,
+      gaveUp: false,
+      availableTries: allowedGuesses,
+      numberOfTries: numberOfTries,
+    });
+  }
+
   function handleCorrectGuess() {
     addGuess({
       guessedFeature: correctFeature,
@@ -104,15 +115,8 @@ function TrailGuesserGameBoard({
       },
     });
 
-    gameContext.finish({
-      singleWithTries: true,
-
-      correctAnswer: correctFeature.selectValue,
-      succeeded: true,
-      gaveUp: false,
-      availableTries: allowedGuesses,
-      numberOfTries: guesses.length,
-    });
+    // The correct guess also counts as a try
+    finish(true, guesses.length + 1);
   }
 
   function handleIncorrectGuess(guess: SelectQuestionOption) {
@@ -129,6 +133,9 @@ function TrailGuesserGameBoard({
       ),
     };
     addGuess(featureGuess);
+
+    // End the game when all guesses are used
+    if (guesses.length + 1 >= allowedGuesses) finish(false, guesses.length + 1);
   }
 
   function getGuessRow(guess: FeatureGuess | undefined) {
@@ -218,6 +225,7 @@ function TrailGuesserGameBoard({
           onQuestionStarted={() => {}}
           onCorrectAnswer={handleCorrectGuess}
           onIncorrectAnswer={handleIncorrectGuess}
+          disabled={gameContext.isFinished}
         />
       </div>
     </div>

@@ -26,7 +26,10 @@ interface Props {
 // Picks the questions, based on the seed
 // In training, all questions are asked in a random order, so there is only a single seed
 // In daily mode, the seed picks a single question
-export default function CompleteGuesser({ possibleQuestions, ...props }: Props) {
+export default function CompleteGuesser({
+  possibleQuestions,
+  ...props
+}: Props) {
   const gameParams = CompleterGame.convertParams(props.gameConfig);
   const seedCount: number =
     props.gameConfig.gamemode === 'training' ? 1 : possibleQuestions.length;
@@ -47,7 +50,6 @@ function CompleteGuesserBoard({
   questions,
   gameConfig,
 }: Omit<Props, 'possibleQuestions'> & { questions: CompleteQuestion[] }) {
-
   const gameContext = useGameContext();
   useEffect(() => {
     gameContext.init({
@@ -66,6 +68,7 @@ function CompleteGuesserBoard({
   }, [questionsLeft]);
 
   function skipQuestion() {
+    if (questionsLeft.length < 2) return;
     // Move the current question to the end
     setQuestionsLeft([...questionsLeft.slice(1), questionsLeft[0]]);
   }
@@ -104,6 +107,7 @@ function CompleteGuesserBoard({
             title='Country'
             onTaskComplete={onTaskComplete}
             onTaskStarted={onTaskStarted}
+            disabled={gameContext.isFinished}
           />
         )}
 
@@ -112,10 +116,18 @@ function CompleteGuesserBoard({
         </div>
 
         <div className='flex flex-col items-center'>
-          <Button onClick={skipQuestion} className='mb-10' variant={'outline'}>
+          <Button
+            onClick={skipQuestion}
+            className='mb-10'
+            variant={'outline'}
+            disabled={gameContext.isFinished}
+          >
             Skip
           </Button>
-          <GiveUpDialog onGiveUp={() => finish(true)} />
+          <GiveUpDialog
+            gameContext={gameContext}
+            onGiveUp={() => finish(true)}
+          />
         </div>
       </div>
     </>

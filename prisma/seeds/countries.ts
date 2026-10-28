@@ -11,20 +11,20 @@ import { SeedCoordinate } from './interfaces';
 enum CountryCSVHeaders {
   'name.common' = 0,
   'name.official',
-  'cca2',
-  'cca3',
-  'independent',
-  'capital',
-  'region',
-  'latlng',
-  'borders',
-  'area',
+  cca2,
+  cca3,
+  independent,
+  capital,
+  region,
+  latlng,
+  borders,
+  area,
 }
 
 enum CuratedCountryCSVHeaders {
-  'iso3Code' = 0,
-  'curated',
-  'reason',
+  iso3Code = 0,
+  curated,
+  reason,
 }
 
 interface CuratedCountry {

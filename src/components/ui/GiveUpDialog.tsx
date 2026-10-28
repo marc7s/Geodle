@@ -13,12 +13,19 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import styles from './GiveUpDialog.module.scss';
+import { GameContext } from '@/context/Game';
 
 interface Props {
+  gameContext: GameContext;
   onGiveUp: () => void;
 }
 
+// Not rendered once the game has finished, since there is nothing left to give up
 export default function GiveUpDialog(props: Props) {
+  const { isFinished, gameStatus } = props.gameContext;
+  if (isFinished) return <></>;
+  if (!gameStatus.timeStarted) return <></>;
+
   return (
     <AlertDialog>
       <AlertDialogTrigger className={`py-2 ${styles.giveUpButton}`}>

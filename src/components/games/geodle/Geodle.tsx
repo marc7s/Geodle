@@ -46,7 +46,9 @@ export default function Geodle(props: Props) {
   if (seed === undefined) return <></>;
 
   const correct: string = getSolution([...props.allowedGuesses], seed)!;
-  return <GeodleBoard key={`${seed}-${correct}`} {...props} correct={correct} />;
+  return (
+    <GeodleBoard key={`${seed}-${correct}`} {...props} correct={correct} />
+  );
 }
 
 function GeodleBoard({
@@ -56,7 +58,6 @@ function GeodleBoard({
   allowedGuesses,
   gameConfig,
 }: Props & { correct: string }) {
-
   const gameContext = useGameContext();
   // Initialize the game
   useEffect(() => {
@@ -150,12 +151,12 @@ function GeodleBoard({
     );
   }
 
-  function finish(gaveUp: boolean) {
+  function finish(succeeded: boolean, gaveUp: boolean) {
     gameContext.finish({
       singleWithTries: true,
 
       correctAnswer: correct,
-      succeeded: !gaveUp,
+      succeeded: succeeded && !gaveUp,
       gaveUp: gaveUp,
       availableTries: allowedGuessCount,
       numberOfTries: state.cursor.y + 1,
@@ -163,6 +164,9 @@ function GeodleBoard({
   }
 
   function onKeyPress(key: string) {
+    if (state.cursor.y >= ROW_COUNT) return;
+    gameContext.start();
+
     // Since we are bound to the same row,
     // there is an edge case where we are at the right-most index, but we have already entered a value
     const isRightEdgeCase: boolean =
@@ -193,7 +197,9 @@ function GeodleBoard({
         cursor: { x: 0, y: state.cursor.y + 1 },
       });
 
-      if (guess === correctNoSpaces.toLocaleLowerCase()) finish(false);
+      // End the game when the guess is correct, or when all rows are used
+      if (guess === correctNoSpaces.toLocaleLowerCase()) finish(true, false);
+      else if (state.cursor.y + 1 >= ROW_COUNT) finish(false, false);
       return;
     }
 
@@ -223,20 +229,15 @@ function GeodleBoard({
           <Keyboard
             board={state.board}
             onKeyPress={onKeyPress}
-            disabled={state.board.some(
-              (row, rowIndex) =>
-                state.cursor.y > rowIndex &&
-                row.map((t) => t.letter).join('') ===
-                  correctNoSpaces.toLocaleLowerCase()
-            )}
+            disabled={gameContext.isFinished}
           />
         </div>
       </div>
       <div className='text-center mt-20'>
-        <GiveUpDialog onGiveUp={() => finish(true)} />
-        {/*gameContext.gameStatus.timeStarted && (
-          
-        )*/}
+        <GiveUpDialog
+          gameContext={gameContext}
+          onGiveUp={() => finish(false, true)}
+        />
       </div>
     </>
   );

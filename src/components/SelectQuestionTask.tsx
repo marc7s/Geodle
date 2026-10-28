@@ -31,6 +31,8 @@ interface Props {
   onCorrectAnswer: () => void;
   onIncorrectAnswer: (guess: SelectQuestionOption) => void;
   onQuestionStarted: () => void;
+  // Disables answering, e.g. when the game has finished
+  disabled?: boolean;
 }
 
 export default function SelectQuestionTask({
@@ -41,6 +43,7 @@ export default function SelectQuestionTask({
   onCorrectAnswer,
   onIncorrectAnswer,
   onQuestionStarted,
+  disabled = false,
 }: Props) {
   const [started, setStarted] = useState<boolean>(false);
 
@@ -49,7 +52,7 @@ export default function SelectQuestionTask({
 
   // A new selection was made, handle it
   useEffect(() => {
-    if (value === '') return;
+    if (value === '' || disabled) return;
 
     const guess: SelectQuestionOption | undefined = options.find(
       (o) => o.value.toLocaleLowerCase() === value
@@ -78,6 +81,7 @@ export default function SelectQuestionTask({
           aria-expanded={open}
           className='w-[200px] justify-between'
           disabled={
+            disabled ||
             value.toLocaleLowerCase() === correctValue.toLocaleLowerCase()
           }
         >

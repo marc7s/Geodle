@@ -16,6 +16,8 @@ type RelativeUnitConversion = [TimeUnit | DistanceUnit, number];
  * @returns A formatted string of relative elapsed time
  * */
 export function getFormattedElapsedTime(elapsedMS: number) {
+  // The time is unknown if the game was given up before it was started
+  if (!Number.isFinite(elapsedMS)) return 'N/A';
   return getFormattedValue(
     elapsedMS / 1000,
     [

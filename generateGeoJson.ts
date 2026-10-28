@@ -94,12 +94,13 @@ function copy(path: string, outputPath: string): Promise<string> {
 }
 
 // Reduces the size of a GeoJSON file
+// `keep-shapes` keeps the largest part of each shape, so small countries (e.g. Kiribati) do not disappear
 function simplify(path: string, outputPath: string): Promise<string> {
   const [targetWidth, targetHeight]: [number, number] = [800, 600];
   const targetMaxZoom: number = 2;
   const resolution: string = `${targetWidth * targetMaxZoom}x${targetHeight * targetMaxZoom}`;
   return runMapshaper(
-    `${path} -simplify visvalingam weighted weighting=0.7 resolution=${resolution} -o precision=0.001 format=geojson combine-layers geojson-type=FeatureCollection ${outputPath}`
+    `${path} -simplify visvalingam weighted weighting=0.7 resolution=${resolution} keep-shapes -o precision=0.001 format=geojson combine-layers geojson-type=FeatureCollection ${outputPath}`
   );
 }
 

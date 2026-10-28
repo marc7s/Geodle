@@ -11,6 +11,8 @@ interface Props {
   title: string;
   onTaskComplete?: () => void;
   onTaskStarted?: () => void;
+  // Disables answering, e.g. when the game has finished
+  disabled?: boolean;
 }
 
 export default function CompleteTask({
@@ -18,6 +20,7 @@ export default function CompleteTask({
   title,
   onTaskComplete: onAllComplete,
   onTaskStarted,
+  disabled = false,
 }: Props) {
   const [taskQuestions, setTaskQuestions] = useState<Question[]>(
     completeQuestion.completeQuestions
@@ -84,6 +87,7 @@ export default function CompleteTask({
               question={q}
               onQuestionStarted={onQuestionStarted}
               onCorrectAnswer={onCorrectAnswer}
+              disabled={disabled}
               focused={
                 q.question === taskQuestions.find((q) => !q.correct)?.question
               }

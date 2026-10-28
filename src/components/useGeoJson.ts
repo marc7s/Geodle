@@ -15,7 +15,10 @@ function loadGeoJson(url: string): Promise<GeoJsonData> {
         if (!res.ok) throw new Error(`Could not load ${url}: ${res.status}`);
         return res.json();
       })
-      .then((data: GeoJsonData) => {
+      .then((data: { features?: { geometry?: unknown }[] }) => {
+        // Features without a geometry cannot be drawn, and would crash the map
+        if (Array.isArray(data.features))
+          data = { ...data, features: data.features.filter((f) => f.geometry) };
         loadedData.set(url, data);
         return data;
       })

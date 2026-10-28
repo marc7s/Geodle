@@ -216,11 +216,13 @@ function PatherGameBoard({
         alreadyAnswered={guesses.map((g) => g.name)}
         allowGivingUp={false}
         isReusable={true}
+        disabled={gameContext.isFinished}
       />
       <div className='mb-4'>{allowedGuesses - guesses.length} guesses left</div>
-      {gameContext.gameStatus.timeStarted && (
-        <GiveUpDialog onGiveUp={() => finish(true, false)} />
-      )}
+      <GiveUpDialog
+        gameContext={gameContext}
+        onGiveUp={() => finish(true, false)}
+      />
     </div>
   );
 }

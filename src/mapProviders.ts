@@ -7,9 +7,14 @@ export type MapStyle =
   | 'Terrain'
   | 'HideAll';
 
+// A transparent 1x1 GIF, so empty maps have valid tiles without loading anything from the network
+// An empty string would make the browser request the page itself for every tile
+const transparentTile: string =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 // A custom offline map provider used in empty maps
 export const emptymap = (x: number, y: number, z: number, dpr = 1): string =>
-  '';
+  transparentTile;
 
 export const stadiamaps =
   (mapStyle: MapStyle = 'Default') =>

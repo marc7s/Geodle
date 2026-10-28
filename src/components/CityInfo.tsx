@@ -3,6 +3,7 @@
 import { City, Country } from '@prisma/client';
 import CountryInfo from './CountryInfo';
 import StaticMap from './StaticMap';
+import InfoField from './InfoField';
 
 interface Props {
   city?: City;
@@ -16,11 +17,10 @@ export default function CityInfo(props: Props) {
     <>
       <div className='flex flex-col items-center'>
         <h1 className='text-3xl'>{props.city.englishName}</h1>
-        <h2>Domestic name: {props.city.domesticName}</h2>
-        <h2></h2>
-        <h2>
-          Coordinates: {props.city.lat} {props.city.long}
-        </h2>
+        <InfoField name='Domestic name'>{props.city.domesticName}</InfoField>
+        <InfoField name='Coordinates'>
+          {props.city.lat} {props.city.long}
+        </InfoField>
         <div className='mt-10'>
           <StaticMap
             height={500}
