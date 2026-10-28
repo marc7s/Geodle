@@ -1,0 +1,16 @@
+# Installed and built inside the image. A local node_modules would overwrite the Linux dependencies
+node_modules
+.next
+out
+
+# Generated inside the image, so the build does not depend on local files
+public/generated
+src/types/routing/generated
+prisma/*.db
+prisma/*.db-journal
+
+# The development environment. .env.prod is kept, since the production build reads it
+.env.dev
+
+*.tsbuildinfo
+.vscode

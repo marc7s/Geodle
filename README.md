@@ -76,7 +76,11 @@ Prisma is used with SQLite, as it allows easily creating the data structures thr
 
 ### Prod
 
-1. Run `npm run deploy-prod` if you need to deploy the database
-2. Run `npm run generate-prod` if you need to regenerate the types
-3. Run `npm run generate-geojson` if you need to regenerate the GeoJson files
-4. Build the application with the `ProdDockerfile`. The database file in `prisma/` is copied into the image, so deploy the database before building
+The `ProdDockerfile` builds everything from a fresh checkout: it creates and seeds the database, generates the types and GeoJson files, and builds the static site, which is served by nginx. There is no backend.
+
+1. Create a `.env.prod` from `.env.prod.example`. It is read during the build, which fails if a required variable is missing (`npm run validate-env-prod` runs the same check)
+2. Build the image with the `ProdDockerfile`, e.g. `docker build -f ProdDockerfile -t geodle .`
+
+Local files such as `node_modules`, the databases and generated files are not copied into the image (see `.dockerignore`), so they do not affect the build.
+
+To build without Docker, run `npm run deploy-prod`, `npm run generate-geojson` and `npm run prod`. The static site is written to `out/`.

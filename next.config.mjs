@@ -4,7 +4,19 @@ import { execSync } from 'child_process';
 import pkg from './package.json' with { type: 'json' };
 
 const version = pkg.version;
-const commitHash = execSync('git rev-parse --short HEAD').toString().trim();
+// The build should not fail where git is unavailable, e.g. a build from a source archive without .git
+function getCommitHash() {
+  try {
+    return execSync('git rev-parse --short HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim();
+  } catch {
+    return 'unknown';
+  }
+}
+const commitHash = getCommitHash();
 const buildDate = new Date().toLocaleString('sv-SE');
 
 const nextConfig = {
